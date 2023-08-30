@@ -67,6 +67,7 @@ export const useGameStore = defineStore("game", () => {
 
         }
         if (!p) {
+            // console.log(`Setting Blank`)
             p = ""
         }
         // console.log(`Found ID ${p}`)
@@ -77,7 +78,7 @@ export const useGameStore = defineStore("game", () => {
 
     function getPlayer(position) {
         let id = getPlayerFromLineup(position, "defense");
-        if (id == null) {
+        if (id == null || id == "") {
             id = getPlayerFromLineup(position, "offense");
         }
 
@@ -94,7 +95,7 @@ export const useGameStore = defineStore("game", () => {
             const response = await axios.get(url);
             console.log(response);
             lineups.value[team] = response.data;
-            console.log(lineups)
+            console.log(lineups.value)
 
         } catch (error) {
             // handle error here

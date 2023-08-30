@@ -42,7 +42,7 @@ export class SPFMetadata {
                 ["box_o", "box_n", "box_m", "box_l", "box_k"]
             ],
             offensiveBoxes: [
-                ["LE_tight", "LT", "LG", "C", "RG", "RT", "RE_tight"],
+                ["LE", "LT", "LG", "C", "RG", "RT", "RE"],
                 ["FL1", "QB", "FL2",],
                 ["B1", "B2", "B3",]
             ],
@@ -62,7 +62,7 @@ export class SPFMetadata {
                 "box_m": defRow3,
                 "box_n": defRow3,
                 "box_o": defRow3,
-                "LE_tight": end, "LT": offLine, "LG": offLine, "C": offLine, "RG": offLine, "RT": offLine, "RE_tight": end,
+                "LE": end, "LT": offLine, "LG": offLine, "C": offLine, "RG": offLine, "RT": offLine, "RE": end,
                 "FL1": flanker, "QB": qb, "FL2": flanker,
                 "B1": backs, "B2": backs, "B3": backs
             },
@@ -82,7 +82,7 @@ export class SPFMetadata {
                 "box_m": "Box M",
                 "box_n": "Box N",
                 "box_o": "Box O",
-                "LE_tight": "LE",
+                "LE": "LE",
             }
         }
 

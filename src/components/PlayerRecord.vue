@@ -41,6 +41,7 @@ export default defineComponent({
 
     const playerName = computed(() => {
       // const player = playerPositions.value[props.boxName];
+      // console.log(`box name: ${props.boxName}`)
       const player = getPlayerRecord(props.boxName);
       if (player) {
         return player.name
