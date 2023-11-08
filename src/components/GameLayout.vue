@@ -17,6 +17,8 @@
             <button @click="toggleTeam">Switch Managed Team</button>
         </div>
 
+        <button @click="runPlay">Run Play</button>
+
     </div>
 </template>
   
@@ -63,6 +65,9 @@ export default defineComponent({
             gamesStore.getLineup(offenseActive.value);
         }
 
+        const runPlay = () => {
+            gamesStore.runPlay();
+        }
         // const toggleManagedTeam = () => {
         //     switchManagedTeam()
         // }
@@ -80,7 +85,8 @@ export default defineComponent({
             trueval,
             toggleTeam,
             managedTeam, getManagedTeam,
-            getOtherTeamLineup
+            getOtherTeamLineup,
+            runPlay
         };
     },
 

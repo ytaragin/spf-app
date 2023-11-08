@@ -6,6 +6,8 @@
 
     <PlayerRow v-for="row in rowList" :active="active" :boxes="row" />
   </div>
+  <OffensePlaySelector v-if="active && !isDefense" />
+  <DefensePlaySelector v-if="active && isDefense" />
 </template>
 
 <script>
@@ -15,10 +17,14 @@ import { SPFMetadata } from "../game/SPFMetadata.js"
 import { useTeamsStore } from '../stores/teamStore';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from '../stores/gameStore';
+import OffensePlaySelector from './OffensePlaySelector.vue';
+import DefensePlaySelector from './DefensePlaySelector.vue';
 
 export default defineComponent({
   components: {
     PlayerRow,
+    OffensePlaySelector,
+    DefensePlaySelector,
   },
 
   props: {

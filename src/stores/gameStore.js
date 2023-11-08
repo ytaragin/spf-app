@@ -77,11 +77,13 @@ export const useGameStore = defineStore("game", () => {
     }
 
     function getPlayer(position) {
+        console.log(`Checking for ${position}`);
         let id = getPlayerFromLineup(position, "defense");
         if (id == null || id == "") {
             id = getPlayerFromLineup(position, "offense");
         }
 
+        console.log(`Returning ${id}`)
         return id;
     }
 
@@ -113,11 +115,58 @@ export const useGameStore = defineStore("game", () => {
 
 
     async function setDefensivePlay(play) {
+        let url = `${baseUrl}/defense/call`;
+
         // convert play object to JSON and send it to the server
-        const response = await axios.post("localhost:8080/play", play);
+        const response = await axios.post(url, play, {
+            headers: {
+                'content-type': 'application/json'
+            }
+        });
         // update the game state with the response data
-        game.value = response.data;
+        gameMsg.value = response.data;
     }
+
+
+
+
+    async function setOffensivePlay(play) {
+        console.log("Hello there")
+        console.log(play)
+        console.log(typeof play)
+
+        // let data = JSON.stringify(play);
+        // console.log(data);
+
+        // let p =        {
+        //     "play_type": "SH",
+        //     "strategy": "Draw",
+        //     "target": "FL1"
+        // };
+
+        let url = `${baseUrl}/offense/call`;
+
+        // // convert play object to JSON and send it to the server
+        const response = await axios.post(url, play, {
+            headers: {
+                'content-type': 'application/json'
+            }
+        });
+        // // update the game state with the response data
+
+
+        gameMsg.value = response.data;
+    }
+
+    async function runPlay() {
+        let url = `${baseUrl}/game/play`;
+
+        // convert play object to JSON and send it to the server
+        const response = await axios.post(url);
+        // update the game state with the response data
+        gameMsg.value = response.data;
+    }
+
 
 
     // return everything that should be exposed to the store
@@ -127,7 +176,9 @@ export const useGameStore = defineStore("game", () => {
         setLineup,
         getLineup,
         setDefensivePlay,
+        setOffensivePlay,
         gameState, gameMsg,
-        getPlayer
+        getPlayer,
+        runPlay
     };
 });

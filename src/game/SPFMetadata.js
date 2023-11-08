@@ -42,9 +42,9 @@ export class SPFMetadata {
                 ["box_o", "box_n", "box_m", "box_l", "box_k"]
             ],
             offensiveBoxes: [
-                ["LE", "LT", "LG", "C", "RG", "RT", "RE"],
-                ["FL1", "QB", "FL2",],
-                ["B1", "B2", "B3",]
+                ["le", "lt", "lg", "c", "rg", "rt", "re"],
+                ["fl1", "qb", "fl2",],
+                ["b1", "b2", "b3",]
             ],
             boxInfo: {
                 "box_a": defRow1,
@@ -62,9 +62,9 @@ export class SPFMetadata {
                 "box_m": defRow3,
                 "box_n": defRow3,
                 "box_o": defRow3,
-                "LE": end, "LT": offLine, "LG": offLine, "C": offLine, "RG": offLine, "RT": offLine, "RE": end,
-                "FL1": flanker, "QB": qb, "FL2": flanker,
-                "B1": backs, "B2": backs, "B3": backs
+                "le": end, "lt": offLine, "lg": offLine, "c": offLine, "rg": offLine, "rt": offLine, "re": end,
+                "fl1": flanker, "qb": qb, "fl2": flanker,
+                "b1": backs, "b2": backs, "b3": backs
             },
             labels: {
                 "box_a": "Box A",
@@ -83,9 +83,65 @@ export class SPFMetadata {
                 "box_n": "Box N",
                 "box_o": "Box O",
                 "LE": "LE",
-            }
-        }
+            },
+            offensivePlays: {
+                InsideRun: {
+                    code: "IR",
+                    description: "Running, Inside Right [IR]",
+                    boxes: ["b1", "b2", "b3"]
+                },
+                InsideLeft: {
+                    code: "IL",
+                    description: "Running, Inside Left [IL]",
+                    boxes: ["b1", "b2", "b3"]
+                },
+                InsideRight: {
+                    code: "IR",
+                    description: "Running, Sweep Right [IR]",
+                    boxes: ["b1", "b2", "b3"]
+                },
+                InsideLeft: {
+                    code: "IL",
+                    description: "Running, Sweep Left [IL]",
+                    boxes: ["b1", "b2", "b3"]
+                },
+                EndAround: {
+                    code: "ER",
+                    description: "Running, End Around[ER]",
+                    boxes: ["b1", "b2", "b3"]
+                },
+                ScreenPass: {
+                    code: "SC",
+                    description: "Screen Pass[SC]",
+                    boxes: ["b1", "b2", "b3"]
+                },
+                QuickPass: {
+                    code: "QK",
+                    description: "Quick Pass[QK]",
+                    boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"]
+                },
+                ShortPass: {
+                    code: "SH",
+                    description: "Short Pass[SH]",
+                    boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"]
+                },
+                LongPass: {
+                    code: "LG",
+                    description: "Long Pass[LG]",
+                    boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"]
+                },
+            },
 
+            defensivePlays: {
+                RunDefense: { code: "Run", description: "Run Defense", boxes: ["b1", "b2", "b3"] },
+                PassDefense: { code: "Pass", description: "Pass Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] },
+                PreventDefense: { code: "Prevent", description: "Prevent Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] },
+                Blitz: { code: "Pass - Blitz", description: "Pass - Blitz Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] }
+
+            },
+
+
+        }
     }
 
     getBoxLabel(box) {
@@ -114,6 +170,34 @@ export class SPFMetadata {
     getPositionForABox(box) {
         return this.metadata.boxInfo[box].positions;
     }
+
+    getOffensivePlayNames() {
+        return Object.keys(this.metadata.offensivePlays);
+    }
+    getDefensivePlayNames() {
+        return Object.keys(this.metadata.defensivePlays);
+    }
+
+    getBoxesPerPlay(play) {
+        console.log(play);
+        if (!play) {
+            return [];
+        }
+        return this.metadata.offensivePlays[play].boxes;
+    }
+    getOffensePlayInfo(play) {
+        if (!play) {
+            return null;
+        }
+        return this.metadata.offensivePlays[play];
+    }
+    getDefensePlayInfo(play) {
+        if (!play) {
+            return null;
+        }
+        return this.metadata.defensivePlays[play];
+    }
+
 }
 
 // defensiveBoxes: [

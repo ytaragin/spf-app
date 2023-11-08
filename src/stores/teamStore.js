@@ -116,6 +116,10 @@ export const useTeamsStore = defineStore('teams', () => {
     return team.value.getPlayersForPositions(positions);
   }
 
+  function getPlayersSetInBox(box) {
+    return playerPositions.value[box];
+  }
+
   const availablePlayerIDs = computed(() => {
     let ids = [...team.availablePlayerIDs()];
 
@@ -144,6 +148,7 @@ export const useTeamsStore = defineStore('teams', () => {
     getPlayerByIDBothTeams,
     playerPositions,
     getPlayersForBox,
+    getPlayersSetInBox,
     removePlayer,
     getManagedTeam,
     toggleManagedTeam,
