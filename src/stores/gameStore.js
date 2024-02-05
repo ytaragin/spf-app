@@ -23,14 +23,14 @@ export const useGameStore = defineStore("game", () => {
     async function fetchGame() {
         // fetch game data from the server
         console.log("Fetching Game from Server")
-        const response = await axios.get("localhost:8080/game");
+        const response = await axios.get("localhost:8080/game/state");
         game.value = response.data;
     }
 
     async function setLineup(lineup, isDefense) {
 
         let func = isDefense ? "defense" : "offense";
-        let url = `${baseUrl}/set${func}lineup`;
+        let url = `${baseUrl}/${func}/lineup`;
 
 
         try {
@@ -77,20 +77,20 @@ export const useGameStore = defineStore("game", () => {
     }
 
     function getPlayer(position) {
-        console.log(`Checking for ${position}`);
+//        console.log(`Checking for ${position}`);
         let id = getPlayerFromLineup(position, "defense");
         if (id == null || id == "") {
             id = getPlayerFromLineup(position, "offense");
         }
 
-        console.log(`Returning ${id}`)
+//        console.log(`Returning ${id}`)
         return id;
     }
 
     async function getLineup(isDefense) {
         let team = isDefense ? "defense" : "offense";
         console.log(`Fetching ${team} lineup`)
-        let url = `${baseUrl}/get${team}lineup`;
+        let url = `${baseUrl}/${team}/lineup`;
 
         try {
             console.log(`Calling ${url}`)

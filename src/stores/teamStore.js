@@ -11,8 +11,6 @@ export const useTeamsStore = defineStore('teams', () => {
   const AWAY = "away";
 
   const teams = ref({});
-  // teams.value[HOME] = { team: {}, availablePlayers: new Set([]), players: { "QB-1": { name: "Joe", id: "QB-1" }, "RB-1": { name: "John", id: "RB-1" } }, };
-  // teams.value[AWAY] = { team: {}, players: { "QB-1": { name: "Joe", id: "QB-1" }, "RB-1": { name: "John", id: "RB-1" } }, };
   const team = ref(new TeamData({ team: {}, availablePlayers: new Set([]), players: { "QB-1": { name: "Joe", id: "QB-1" }, "RB-1": { name: "John", id: "RB-1" } }, }));
   const managedTeam = ref(HOME);
   const otherTeam = ref(AWAY);
@@ -60,7 +58,7 @@ export const useTeamsStore = defineStore('teams', () => {
     team.value.assignPlayer(id);
     let curr = playerPositions.value[spot];
     if (curr) {
-      team.resetPlayer(curr.id);
+      team.value.resetPlayer(curr.id);
     }
     playerPositions.value[spot] = team.value.getPlayerByID(id);
     // console.log(playerPositions)
@@ -70,7 +68,7 @@ export const useTeamsStore = defineStore('teams', () => {
   function removePlayer(spot) {
     let curr = playerPositions.value[spot];
     if (curr) {
-      team.resetPlayer(curr.id);
+      team.value.resetPlayer(curr.id);
     }
     delete playerPositions.value[spot];
   }

@@ -1,7 +1,7 @@
 <template>
     <div class="spot-component">
-        <div class="box">{{ boxLabel }}</div>
-        <PlayerSelector :boxName="boxName" :active="active" />
+        <div class="box">{{ boxLabel }} </div>
+        <PlayerSelector v-if="active" :boxName="boxName"  />
         <PlayerRecord :boxName="boxName" :active="active"/>
     </div>
 </template>

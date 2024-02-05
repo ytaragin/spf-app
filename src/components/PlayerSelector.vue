@@ -7,13 +7,14 @@
                 {{ getPlayerRecord(id).name }}
             </option>
         </select>
-        <button v-if='selectedPlayerId != ""' @click="selectPlayer" :disabled="!active"> Set </button>
-        <button v-if='selectedPlayerId != ""' @click="clearPlayer" :disabled="!active">Clear</button>
+        <button :disabled='selectedPlayerId == ""' @click="selectPlayer" > Set </button>
+        <button  @click="clearPlayer" >Clear</button>
 
     </div>
 </template>
 
 <script>
+    // v-if='playerName!= "-"'
 import { defineComponent, computed, ref, onMounted } from 'vue'
 //   import { useStore } from 'pinia';
 import { useTeamsStore } from '@/stores/teamStore' // Adjust the path as needed
@@ -36,18 +37,6 @@ export default defineComponent({
 
         const selectedPlayerId = ref("");
 
-        // console.log(Object.keys(playerMap).length)
-        // const fetchPlayers = playerStore.fetchPlayers;
-
-        // const availNames = computed(() => {
-        //     let s = availablePlayerIDs.value.length;
-        //     console.log(`Avail Players length is ${s}`)
-        //     availablePlayerIDs.value.map((id) => defenseStore.getPlayerByID(id).name)
-        // });
-
-        // const availablePlayerNames = computed(() => {
-        //     return availablePlayerIDs.value.map(id => defenseStore.getPlayerByID(id).name)
-        // })
         const updateCounter = () => {
             teamStore.updateVersion();
         }
@@ -60,6 +49,15 @@ export default defineComponent({
 
         })
 
+
+        const playerName = computed(() => {
+            const player = getPlayerRecord(props.boxName);
+            if (player) {
+                return player.name
+            }
+            return "-"
+        })
+
         const selectPlayer = () => {
             if (selectedPlayerId.value) {
                 // console.log(`${selectedPlayerId.value} was selected`)
@@ -68,9 +66,12 @@ export default defineComponent({
                 // const selectedPlayer = availablePlayers.value[selectedPlayerId.value]
                 // defenseStore.selectPlayer(props.rowIndex, props.spotIndex, selectedPlayer.value)
             }
+
+            console.log(playerName.value);
         }
 
         const clearPlayer = () => {
+            console.log(`Trying to remove ${props.boxName}`);
             teamStore.removePlayer(props.boxName);
         }
 
@@ -78,7 +79,7 @@ export default defineComponent({
             // console.log(`Getting record for ${id}`)
             let r = teamStore.getPlayerByIDBothTeams(id)
             if (!r) {
-                return { name: "Kevin" }
+                return { name: "-" }
             }
             return r;
         }
@@ -90,37 +91,13 @@ export default defineComponent({
             getPlayerRecord,
             availablePlayersForPos,
             clearPlayer,
+            playerName,
             teamStore,
             getPlayersForBox,
             versionCounter, updateCounter
         };
     },
 
-    // setup(props) {
-    //     const defenseStore = useDefenseStore()
-    //     const selectedPlayerId = ref('')
-
-    //     const availablePlayers = computed(() => defenseStore.getAvailablePlayers())
-    //     console.log(availablePlayers.value);
-
-    //     const selectPlayer = () => {
-    //         if (selectedPlayerId.value) {
-    //             console.log(`${selectedPlayerId.value} was selected`)
-    //             // const selectedPlayer = availablePlayers.value[selectedPlayerId.value]
-    //             // defenseStore.selectPlayer(props.rowIndex, props.spotIndex, selectedPlayer.value)
-    //         }
-    //     }
-
-    //     onMounted(() => {
-    //         defenseStore.fetchPlayers()
-    //     })
-
-    //     return {
-    //         selectedPlayerId,
-    //         availablePlayers,
-    //         selectPlayer
-    //     }
-    // }
 })
 </script>
 

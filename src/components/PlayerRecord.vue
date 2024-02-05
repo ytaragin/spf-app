@@ -1,6 +1,5 @@
 <template>
   <div class="player-record">
-    <h1>{{ boxName }}</h1>
     <!-- Display other player information here -->
     {{ playerName }}
   </div>
