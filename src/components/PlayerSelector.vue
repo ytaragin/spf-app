@@ -1,14 +1,20 @@
 <template>
     <!-- <h4> Player Selector ( {{ boxName }})</h4> -->
     <div class="player-selector">
-        <select v-model="selectedPlayerId">
-            <option value="" disabled>Select a player</option>
-            <option v-for="id in availablePlayersForPos" :key="id" :value="id">
-                {{ getPlayerRecord(id).name }}
-            </option>
-        </select>
-        <button :disabled='selectedPlayerId == ""' @click="selectPlayer" > Set </button>
-        <button  @click="clearPlayer" >Clear</button>
+       <div class="player-name">
+        <v-select
+            v-model="selectedPlayerId" 
+            :items="availablePlayersForPos"
+             variant="outlined"
+                   density="compact"
+            item-title="name"
+            item-value="id"
+            ></v-select> 
+       </div>
+       <div class="player-buttons">
+        <v-btn :disabled='selectedPlayerId == ""' @click="selectPlayer" > Set </v-btn>
+        <v-btn  @click="clearPlayer" >Clear</v-btn>
+       </div>
 
     </div>
 </template>
@@ -44,6 +50,14 @@ export default defineComponent({
         const versionCounter = computed(() => teamStore.version)
 
         const availablePlayersForPos = computed(() => {
+            // console.log(`Trying to get players for ${props.boxName}`)
+            return teamStore.getPlayersForBox(props.boxName).map(id => {
+                return {id, name: getPlayerRecord(id).name}
+            })
+
+        })
+
+        const availablePlayersForPos2 = computed(() => {
             // console.log(`Trying to get players for ${props.boxName}`)
             return teamStore.getPlayersForBox(props.boxName)
 
@@ -104,12 +118,25 @@ export default defineComponent({
 <style>
 .player-selector {
     display: flex;
-    align-items: center;
+    xalign-items: center;
+    flex-direction: column;
 }
+                .player-name {
+                width: 100%;
+                }
+                .player-buttons {
+                }
 </style>
 
 
-<!-- <template>
+
+ <!--        <select v-model="selectedPlayerId">
+            <option value="" disabled>Select a player</option>
+            <option v-for="id in availablePlayersForPos" :key="id" :value="id">
+                {{ getPlayerRecord(id).name }}
+            </option>
+        </select>
+<template>
     <div class="player-selector">
         <h4>Player Selector</h4>
         <select v-model="selectedPlayerId">
@@ -118,7 +145,7 @@ export default defineComponent({
                 {{ player.name }}
             </option>
         </select>
-        <button @click="selectPlayer">Select</button>
+        <v-btn @click="selectPlayer">Select</button>
     </div>
 
     v-if="Object.keys(playerMap).length > 0"
