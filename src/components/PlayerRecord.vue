@@ -14,18 +14,24 @@
 </template>
 
 <script>
-    import { computed, defineComponent, ref } from 'vue'
+    import { computed, defineComponent, ref, watch } from 'vue'
     import { useTeamsStore } from '../stores/teamStore';
     import { storeToRefs } from 'pinia';
     import { useGameStore } from '../stores/gameStore';
 
 
+    import RB from './players/RB.vue'
     import QB from './players/QB.vue'
+    import TE from './players/TE.vue'
+    import WR from './players/WR.vue'
+    import OL from './players/OL.vue'
     import Plain from './players/Plain.vue'
 
     export default defineComponent({
         components: {
             QB,
+            RB,
+            TE, WR, OL,
             Plain
         },
         props: {
@@ -77,10 +83,13 @@
                 if (player) {
                     console.log("Player set");
                     console.log(player);
-                    recpos.value = player.position;
                     return player.name
                 }
                 return "-"
+            })
+            watch(playerRec, (rec) => {
+                console.log(`x is ${rec}`)
+                recpos.value = rec.position;
             })
 
             const playerPosition = computed(() => {
