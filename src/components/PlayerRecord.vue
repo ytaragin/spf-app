@@ -44,18 +44,15 @@
             const gamesStore = useGameStore();
             const { getPlayer } = storeToRefs(gamesStore);
 
+
             const recpos = ref('Plain');
+            const playerName= ref('-');
 
             const currentView = computed(() => {
                 let rec =  getPlayerRecord(props.boxName);
                 console.log(`Positions is ${rec.position}`);
                 console.log(rec);
                 return rec.position;
-                //if (this.currentType === 'A') {
-                 //   return 'Plain'
-                //} else {
-               //     return 'TypeBComponent' 
-               // }
             })
 
             function getPlayerRecord(boxName) {
@@ -76,25 +73,13 @@
                 return getPlayerRecord(props.boxName);
             })
 
-            const playerName = computed(() => {
-                // const player = playerPositions.value[props.boxName];
-                // console.log(`box name: ${props.boxName}`)
-                const player = getPlayerRecord(props.boxName);
-                if (player) {
-                    console.log("Player set");
-                    console.log(player);
-                    return player.name
-                }
-                return "-"
-            })
             watch(playerRec, (rec) => {
                 console.log(`x is ${rec}`)
                 recpos.value = rec.position;
+                playerName.value = rec.name;
             })
 
             const playerPosition = computed(() => {
-                // const player = playerPositions.value[props.boxName];
-                // console.log(`box name: ${props.boxName}`)
                 const player = getPlayerRecord(props.boxName);
                 if (player) {
                     console.log(`Position is ${player.pos} `);
