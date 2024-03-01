@@ -2,7 +2,7 @@
     <div class="spot-component">
         <div class="box">{{ boxLabel }} </div>
         <PlayerSelector v-if="active" :boxName="boxName"  />
-        <PlayerRecord :boxName="boxName" :active="active"/>
+        <PlayerRecord :boxName="boxName" :inPlace="false" />
     </div>
 </template>
   

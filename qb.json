@@ -1,0 +1,79 @@
+{
+  "endurance": "A",
+  "endurance_rushing": 4,
+  "id": "QB-62",
+  "long": {
+    "stats": {
+      "Complete": "1-20",
+      "Incomplete": "21-46",
+      "Interception": "47-48"
+    }
+  },
+  "long_run": "O",
+  "name": "Joe Theismann",
+  "pass_rush": {
+    "stats": {
+      "Complete": "31-42",
+      "Incomplete": "43-48",
+      "Runs": "13-30",
+      "Sack": "1-12"
+    }
+  },
+  "position": "QB",
+  "quick": {
+    "stats": {
+      "Complete": "1-37",
+      "Incomplete": "38-48",
+      "Interception": "49-49"
+    }
+  },
+  "rushing": {
+    "stats": [
+      "Sg",
+      {
+        "Val": 11
+      },
+      {
+        "Val": 10
+      },
+      {
+        "Val": 9
+      },
+      {
+        "Val": 8
+      },
+      {
+        "Val": 7
+      },
+      {
+        "Val": 6
+      },
+      {
+        "Val": 4
+      },
+      {
+        "Val": 3
+      },
+      {
+        "Val": 2
+      },
+      {
+        "Val": 1
+      },
+      {
+        "Val": -1
+      }
+    ]
+  },
+  "short": {
+    "stats": {
+      "Complete": "1-29",
+      "Incomplete": "30-47",
+      "Interception": "48-48"
+    }
+  },
+  "team": {
+    "name": "Washington",
+    "year": "1983"
+  }
+}

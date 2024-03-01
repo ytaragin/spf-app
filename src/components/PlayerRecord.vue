@@ -5,10 +5,23 @@
         width="100%"
         class="pa-4 text-center mx-auto"
         >
-        <div class="player-record">
-            <!-- Display other player information here -->
-        {{ playerName }}
-        <component :is='recpos' :player=playerRec></component>
+        <!-- <div class="player-record" @mouseenter="handleMouseenter" @mouseleave="handleMouseleave"> -->
+        <div class="player-record" >
+    <template v-if="!inPlace">
+            <v-menu open-on-hover location="end">
+                <template v-slot:activator="{ props }">
+                    <!-- <div @mouseover="props.open">Hover me</div> -->
+                    <PlayerName v-bind="props"  :name="playerName" :team="playerTeam" />
+                {{recpos}}
+                </template>
+                    <component :is='recpos' :player=playerRec></component>
+            </v-menu>
+    </template>
+    <template v-else>
+                    <PlayerName v-bind="props"  :name="playerName" :team="playerTeam" />
+                {{recpos}}
+                    <component :is='recpos' :player=playerRec></component>
+    </template>
         </div>
     </v-sheet>
 </template>
@@ -26,17 +39,19 @@
     import WR from './players/WR.vue'
     import OL from './players/OL.vue'
     import Plain from './players/Plain.vue'
+    import PlayerName from './players/PlayerName.vue'
 
     export default defineComponent({
         components: {
             QB,
             RB,
             TE, WR, OL,
+            PlayerName, 
             Plain
         },
         props: {
             boxName: String,
-            active: Boolean,
+            inPlace: Boolean,
         },
         setup(props) {
             const teamStore = useTeamsStore();
@@ -44,9 +59,11 @@
             const gamesStore = useGameStore();
             const { getPlayer } = storeToRefs(gamesStore);
 
+            const showChild = ref(false);
 
             const recpos = ref('Plain');
             const playerName= ref('-');
+            const playerTeam = ref({name:"-", year:"-"});
 
             const currentView = computed(() => {
                 let rec =  getPlayerRecord(props.boxName);
@@ -54,6 +71,15 @@
                 console.log(rec);
                 return rec.position;
             })
+
+            function handleMouseenter() {
+                showChild.value = true;
+            }
+
+            function handleMouseleave() {
+                showChild.value = false;
+            }
+
 
             function getPlayerRecord(boxName) {
                 let rec = null;
@@ -68,7 +94,7 @@
                 }
                 return rec;
             }
-            
+
             const playerRec = computed(() => {
                 return getPlayerRecord(props.boxName);
             })
@@ -77,6 +103,9 @@
                 console.log(`x is ${rec}`)
                 recpos.value = rec.position;
                 playerName.value = rec.name;
+                playerTeam.value = rec.team;
+                console.log(playerTeam);
+
             })
 
             const playerPosition = computed(() => {
@@ -88,7 +117,9 @@
                 return "Plain"
             })
 
-            return { recpos, playerPosition, playerName, currentView, playerRec }
+            return { recpos, playerPosition, playerName, currentView, 
+                playerRec, playerTeam, showChild, handleMouseenter, handleMouseleave,
+            inPlace: props.inPlace}
 
         }
 

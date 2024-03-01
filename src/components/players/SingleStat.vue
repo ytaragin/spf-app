@@ -9,7 +9,7 @@
 <script setup>
     defineProps({
        name:String, 
-       val: Object,
+       val:[String, Number],
     })
 </script>
 
