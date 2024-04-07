@@ -24,7 +24,7 @@
 
 <script setup>
 const props = defineProps({
-  leftPosition: {
+  ballPosition: {
     type: Number,
     default: 60, // Set default value
   },
@@ -45,7 +45,7 @@ const ball_height = props.fieldHeight/4;
 const ball_top = props.fieldHeight/2 - ball_height/2;
 const actual_width= (props.fieldWidth-(2*edge_buffer));
 console.log(`actual_width: ${actual_width}`);
-const ball_left = edge_buffer + actual_width * props.leftPosition / 100;
+const ball_left = edge_buffer + actual_width * props.ballPosition / 100;
 console.log(`ball_left: ${ball_left}`);
 
 </script>

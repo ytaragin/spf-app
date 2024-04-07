@@ -26,7 +26,6 @@
 
 
 <script setup>
-    import { ref } from 'vue'
 
     const props = defineProps({
        title: String,
@@ -34,10 +33,38 @@
        labels: Array,
     });
 
+function getValue(input) {
+  // If the input is a string, return it
+  if (typeof input === 'string') {
+    return input;
+  }
+  // If the input is an object with a 'Val' property, return the value of 'Val'
+else if (typeof input === 'object' && input !== null && 'Val' in input && input.Val !== undefined) {
+//else if (typeof input === 'object' && input !== null && 'Val' in input) {
+    return input.Val;
+  }
+  // If the input is undefined, or doesn't match the above conditions, return "-"
+  else {
+    return '-';
+  }
+}
+
+    const formatStat = (stat) => {
+        if (stat == "Sg") {
+        return stat;
+        }
+        if (stat.Val == 0) {
+        return stat;
+        }
+        return stat?.Val || '-';
+    }
+
     const formatStats = (labels, stats) => {
     // function formatStats(stats) {
+    console.log(stats);
        return labels
-    .map(label => stats[label]?.Val || '-')
+    //.map(label =>formatStat(stats[label])) 
+    .map(label =>getValue(stats[label])) 
     .join('/')
     }
 

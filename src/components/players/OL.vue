@@ -2,22 +2,19 @@
 
 <template>
     <div>
+        <v-card>
        OL 
-        {{player}}
+        <SingleStat name="Blocks" :val="player.blocks"/>
+        <SingleStat name="Pass Blocks" :val="player.pass_block"/>
+        </v-card>
     </div>
 </template>
 
-<script>
+<script setup>
 
-export default {
-  props: {
+import SingleStat from './SingleStat.vue'
+    
+    defineProps({
     player:Object,
-  },
-  setup(props) {
-
-
-        return {
-        }
-    }
-}
+  })
 </script>

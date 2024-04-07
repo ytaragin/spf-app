@@ -6,7 +6,7 @@
         <div class="stattitle">{{title}}</div>
         <div>
             <div v-for="label in labels" >
-                {{ label.value || label.key }} {{ stats[label.key] }}
+                {{ label.value || label.key }}: {{ stats[label.key] }}
             </div>
         </div>
     </div>
@@ -37,13 +37,5 @@
 }
         .team-name {
             font-style: italic;
-        }
-        .stattitle {
-            font-weight: bold;
-        }
-
-        .statbox{
-            display: flex;
-            flex-direction: column;
         }
 </style>

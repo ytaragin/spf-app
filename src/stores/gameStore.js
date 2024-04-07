@@ -7,8 +7,8 @@ export const useGameStore = defineStore("game", () => {
     const gameMsg = ref("+++");
     const game = ref(null);
     const gameState = ref({
-        home: 0,
-        away: 0,
+        home_score: 0,
+        away_score: 0,
         quarter: 1,
         time_remaining: "15:00",
         possession: "home",

@@ -100,6 +100,7 @@ export const useTeamsStore = defineStore('teams', () => {
   };
 
   function getTeamName(side) {
+      console.log(`getting team name for ${side} - ${teams.value[side]}`);
     if (teams.value[side]) {
       return teams.value[side].teamName()
     }

@@ -1,0 +1,9 @@
+
+.stattitle {
+    font-weight: bold;
+}
+
+.statbox{
+    display: flex;
+    flex-direction: column;
+}
