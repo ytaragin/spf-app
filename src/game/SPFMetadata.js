@@ -181,8 +181,10 @@ export class SPFMetadata {
     getBoxesPerPlay(play) {
         console.log(play);
         if (!play) {
+            console.log("No Boxes returned")
             return [];
         }
+        console.log(this.metadata.offensivePlays[play].boxes)
         return this.metadata.offensivePlays[play].boxes;
     }
     getOffensePlayInfo(play) {

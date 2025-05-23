@@ -2,6 +2,8 @@
 <template>
     <div class="game-layout">
         <GameStatus />
+
+        <button @click="fetchGame2()" >Get Game Status</button>
         <TeamLineup v-if="!offenseActive" :active="offenseActive" title="Offensive Lineup" :isDefense="!trueval" />
         <button @click="getOtherTeamLineup()">Get Other Team Lineup</button>
 
@@ -44,6 +46,7 @@ export default defineComponent({
         const teamsStore = useTeamsStore()
         const { getManagedTeam, toggleManagedTeam } = storeToRefs(teamsStore);
         const gamesStore = useGameStore();
+        const fetchGame2 = useGameStore().fetchGame;
 
 
         const offenseActive = ref(true);
@@ -78,6 +81,7 @@ export default defineComponent({
         return {
             game,
             fetchGame,
+            fetchGame2,
             offenseActive,
             toggleOffense,
             setDefensiveLineup,
