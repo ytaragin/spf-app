@@ -35,6 +35,14 @@ export class SPFMetadata {
             positions: ["RB", "WR"]
         }
 
+        // Special teams positions
+        let kicker = {
+            positions: ["K"]
+        }
+        let kickReturner = {
+            positions: ["KR"]
+        }
+
         this.metadata = {
             defensiveBoxes: [
                 ["box_e", "box_d", "box_c", "box_b", "box_a"],
@@ -45,6 +53,12 @@ export class SPFMetadata {
                 ["le", "lt", "lg", "c", "rg", "rt", "re"],
                 ["fl1", "qb", "fl2",],
                 ["b1", "b2", "b3",]
+            ],
+            kickoffBoxes: [
+                ["K"],
+            ],
+            kickoffReturn: [
+                ["KR"]
             ],
             boxInfo: {
                 "box_a": defRow1,
@@ -64,7 +78,8 @@ export class SPFMetadata {
                 "box_o": defRow3,
                 "le": end, "lt": offLine, "lg": offLine, "c": offLine, "rg": offLine, "rt": offLine, "re": end,
                 "fl1": flanker, "qb": qb, "fl2": flanker,
-                "b1": backs, "b2": backs, "b3": backs
+                "b1": backs, "b2": backs, "b3": backs,
+                "K": kicker, "KR": kickReturner
             },
             labels: {
                 "box_a": "Box A",
@@ -83,6 +98,8 @@ export class SPFMetadata {
                 "box_n": "Box N",
                 "box_o": "Box O",
                 "LE": "LE",
+                "K": "Kicker",
+                "KR": "Kick Returner",
             },
             offensivePlays: {
                 InsideRun: {

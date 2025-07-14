@@ -3,23 +3,20 @@
     <div class="game-layout">
         <GameStatus />
 
-        <button @click="fetchGame2()" >Get Game Status</button>
-        <TeamLineup v-if="!offenseActive" :active="offenseActive" title="Offensive Lineup" :isDefense="!trueval" />
-        <button @click="getOtherTeamLineup()">Get Other Team Lineup</button>
-
-        <TeamLineup :active="!offenseActive" title="Defensive Lineup" :isDefense="trueval" />
-
-        <TeamLineup v-if="offenseActive" :active="offenseActive" title="Offensive Lineup" :isDefense="!trueval" />
-
-
-
-        <button @click="toggleOffense">Switch Offense/Defense</button>
+        <v-btn @click="getOtherTeamLineup()">Get Other Team Lineup</v-btn>
+        <v-btn @click="fetchGame2()">Get Game Status</v-btn>
+        
+        <PlaySelector :playType="currentPlayType" @update:playType="updatePlayType" />
+        
+        <PlayLineup :currentPlayType="currentPlayType" :offenseActive="offenseActive" />
+        
+        <v-btn @click="toggleOffense">Switch Offense/Defense</v-btn>
         <div>
             Managed team: {{ managedTeam }}
-            <button @click="toggleTeam">Switch Managed Team</button>
+            <v-btn @click="toggleTeam">Switch Managed Team</v-btn>
         </div>
 
-        <button @click="runPlay">Run Play</button>
+        <v-btn @click="runPlay" color="success" variant="elevated">Run Play</v-btn>
 
     </div>
 </template>
@@ -32,13 +29,15 @@ import { useGameStore } from '@/stores/gameStore'
 import { useTeamsStore } from '@/stores/teamStore'
 import { storeToRefs } from 'pinia';
 
-import TeamLineup from './TeamLineup.vue'
 import GameStatus from './GameStatus.vue'
+import PlaySelector from './PlaySelector.vue'
+import PlayLineup from './PlayLineup.vue'
 
 export default defineComponent({
     components: {
-        TeamLineup,
         GameStatus,
+        PlaySelector,
+        PlayLineup
     },
 
     setup(props) {
@@ -48,15 +47,16 @@ export default defineComponent({
         const gamesStore = useGameStore();
         const fetchGame2 = useGameStore().fetchGame;
 
-
         const offenseActive = ref(true);
-        const trueval = ref(true);
+        const currentPlayType = ref('standard');
 
+        const updatePlayType = (playType) => {
+            currentPlayType.value = playType.toLowerCase();
+        };
 
         const toggleOffense = () => {
             offenseActive.value = !offenseActive.value;
-
-        }
+        };
 
         const managedTeam = computed(() => teamsStore.getManagedTeam())
 
@@ -86,11 +86,12 @@ export default defineComponent({
             toggleOffense,
             setDefensiveLineup,
             setDefensivePlay,
-            trueval,
             toggleTeam,
             managedTeam, getManagedTeam,
             getOtherTeamLineup,
-            runPlay
+            runPlay,
+            currentPlayType,
+            updatePlayType
         };
     },
 
@@ -100,5 +101,15 @@ export default defineComponent({
 </script>
 
 <style>
-.game-layout {}
+.game-layout {
+    padding: 1rem;
+}
+
+.game-layout .v-btn {
+    margin: 0.25rem;
+}
+
+.game-layout > div {
+    margin: 0.5rem 0;
+}
 </style>

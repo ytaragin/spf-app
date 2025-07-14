@@ -13,8 +13,13 @@ export const useGameStore = defineStore("game", () => {
         time_remaining: "15:00",
         possession: "home",
         yard_line: 25,
+        first_down_target: 35,
+        last_status: "Start",
+        down: "First",
+
     })
     const lineups = ref({})
+    const playTypes = ref([])
 
 
     const baseUrl = "http://127.0.0.1:8080";
@@ -22,9 +27,13 @@ export const useGameStore = defineStore("game", () => {
     // methods
     async function fetchGame() {
         // fetch game data from the server
-        console.log("Fetching Game from Server")
-        const response = await axios.get("localhost:8080/game/state");
-        game.value = response.data;
+        console.log("Fetching Game Status from Server")
+        let url = `${baseUrl}/game/state`;
+        const response = await axios.get(url);
+        gameState.value = response.data;
+        console.log(`got ${response}`);
+        console.log(response.data);
+        console.log(gameState.value);
     }
 
     async function setLineup(lineup, isDefense) {
@@ -76,14 +85,18 @@ export const useGameStore = defineStore("game", () => {
         return p;
     }
 
+    function getHardCodedValue() {
+        return 42
+    }
+
     function getPlayer(position) {
-//        console.log(`Checking for ${position}`);
+        console.log(`Checking for ${position}`);
         let id = getPlayerFromLineup(position, "defense");
         if (id == null || id == "") {
             id = getPlayerFromLineup(position, "offense");
         }
 
-//        console.log(`Returning ${id}`)
+        console.log(`Returning ${id}`)
         return id;
     }
 
@@ -111,6 +124,43 @@ export const useGameStore = defineStore("game", () => {
         // convert lineup object to JSON and send it to the server
 
     }
+
+    async function fetchPlayTypes() {
+        let url = `${baseUrl}/game/nexttype`;
+
+        try {
+            const response = await axios.get(url);
+            console.log('Play types response:', response);
+            console.log('Play types data:', response.data);
+
+            // // Ensure we always set an array
+            // if (Array.isArray(response.data)) {
+            //     playTypes.value = response.data;
+            // } else if (response.data && typeof response.data === 'object') {
+            //     // If response.data is an object, try to extract an array from it
+            //     playTypes.value = Object.values(response.data);
+            // } else {
+            //     console.warn('Unexpected play types data format:', response.data);
+            //     playTypes.value = [];
+            // }
+
+            playTypes.value = response.data.allowed_types;
+
+            console.log('Final playTypes value:', playTypes.value);
+        } catch (error) {
+            // handle error here
+            console.error('Error fetching play types:', error);
+            playTypes.value = []; // Ensure it's always an array
+            if (error.response) {
+                // handle 400 error here
+                let msg = error.response.data;
+                console.log(`Error was ${msg}`); // the server response data
+                gameMsg.value = msg;
+            }
+        }
+    }
+
+    const getPlayTypes = computed(() => playTypes.value)
 
 
 
@@ -168,7 +218,6 @@ export const useGameStore = defineStore("game", () => {
     }
 
 
-
     // return everything that should be exposed to the store
     return {
         game,
@@ -179,6 +228,9 @@ export const useGameStore = defineStore("game", () => {
         setOffensivePlay,
         gameState, gameMsg,
         getPlayer,
-        runPlay
+        getHardCodedValue,
+        runPlay,
+        fetchPlayTypes,
+        getPlayTypes
     };
 });

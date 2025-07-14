@@ -1,6 +1,5 @@
 <template>
     <h1>{{ title }}</h1>
-    <v-btn v-if="active" @click="submitLineup">Submit Lineup</v-btn>
     <h3>-{{ gameMsg }}</h3>
     <div class="team-lineup">
 
@@ -58,32 +57,6 @@ export default defineComponent({
 
         // }
 
-        const submitLineup = () => {
-            console.log("Submitting Lineup")
-            let spots = rows.flat();
-
-            let obj = spots.reduce((accumulator, current) => {
-                let p = playerPositions.value[current];
-                let md = spfMetadata.getPositionMetaData(current);
-                let id = p ? p.id : null;
-                if (md.allowMultiple) {
-                    if (id) {
-                        id = [id];
-                    }
-                    else {
-                        id = [];
-                    }
-
-                }
-                accumulator[current] = id; // assign the key-value pair
-                return accumulator; // return the updated object
-            }, {});
-
-            gameStore.setLineup(obj, props.isDefense);
-
-
-        }
-
         const rowList = computed(() => {
             let a = rows;
             if (!props.active) {
@@ -99,7 +72,7 @@ export default defineComponent({
         // Other setup logic
 
         // Return anything needed for the component
-        return { rowList, rows, submitLineup, playerPositions, gameMsg };
+        return { rowList, rows, playerPositions, gameMsg };
     },
 
 })

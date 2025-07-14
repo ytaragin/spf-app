@@ -9,9 +9,9 @@
         <v-container>
             <v-row > 
                 <v-col>
-                    <PassingStat title="Quick" :labels="passLabels" :stats="player.quick.stats" />
-                    <PassingStat title="Short" :labels="passLabels" :stats="player.short.stats" />
-                    <PassingStat title="Long" :labels="passLabels" :stats="player.long.stats" />
+                    <RangedStat title="Quick" :labels="passLabels" :stats="player.quick.stats" />
+                    <RangedStat title="Short" :labels="passLabels" :stats="player.short.stats" />
+                    <RangedStat title="Long" :labels="passLabels" :stats="player.long.stats" />
                 </v-col>
                 <v-col>
                     <NumberedStat title="Rushing" :values="player.rushing.stats" />
@@ -19,7 +19,7 @@
             </v-row>
             <v-row > 
                 <v-col>
-                    <PassingStat title="Pass Rush" :labels="rushLabels" :stats="player.pass_rush.stats" />
+                    <RangedStat title="Pass Rush" :labels="rushLabels" :stats="player.pass_rush.stats" />
                 </v-col>
                 <v-col>
                     <SingleStat name="Endurance Rushing" :val="player.endurance_rushing" />
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-    import PassingStat from './PassingStat.vue'
+    import RangedStat from './RangedStat.vue'
 import SingleStat from './SingleStat.vue'
 import NumberedStat from './NumberedStat.vue'
 

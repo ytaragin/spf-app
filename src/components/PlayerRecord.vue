@@ -38,6 +38,11 @@
     import TE from './players/TE.vue'
     import WR from './players/WR.vue'
     import OL from './players/OL.vue'
+    import K from './players/K.vue'
+    import LB from './players/LB.vue'
+    import DL from './players/DL.vue'
+    import DB from './players/DB.vue'
+    import KR from './players/KR.vue'
     import Plain from './players/Plain.vue'
     import PlayerName from './players/PlayerName.vue'
 
@@ -45,7 +50,8 @@
         components: {
             QB,
             RB,
-            TE, WR, OL,
+            TE, WR, OL, K,
+            LB, DL, DB, KR,
             PlayerName, 
             Plain
         },
