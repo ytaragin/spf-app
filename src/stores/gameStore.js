@@ -208,6 +208,34 @@ export const useGameStore = defineStore("game", () => {
         gameMsg.value = response.data;
     }
 
+    async function setKickoffPlay(kickoffOptions) {
+        console.log("Setting kickoff play")
+        console.log(kickoffOptions)
+
+        // Extract the onside value from the kickoff options
+        const playData = {
+            "onside": kickoffOptions.onside || false
+        }
+
+        let url = `${baseUrl}/offense/call`;
+
+        try {
+            const response = await axios.post(url, playData, {
+                headers: {
+                    'content-type': 'application/json'
+                }
+            });
+            gameMsg.value = response.data;
+        } catch (error) {
+            console.error('Error setting kickoff play:', error);
+            if (error.response) {
+                let msg = error.response.data;
+                console.log(`Error was ${msg}`);
+                gameMsg.value = msg;
+            }
+        }
+    }
+
     async function runPlay() {
         let url = `${baseUrl}/game/play`;
 
@@ -226,6 +254,7 @@ export const useGameStore = defineStore("game", () => {
         getLineup,
         setDefensivePlay,
         setOffensivePlay,
+        setKickoffPlay,
         gameState, gameMsg,
         getPlayer,
         getHardCodedValue,

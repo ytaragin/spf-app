@@ -15,7 +15,7 @@
   
 <script>
 import { defineComponent, ref, watch, computed } from 'vue'
-import { SPFMetadata } from "../game/SPFMetadata.js"
+import { SPFMetadata } from "../../game/SPFMetadata.js"
 import { useGameStore } from '@/stores/gameStore'
 import { storeToRefs } from 'pinia';
 

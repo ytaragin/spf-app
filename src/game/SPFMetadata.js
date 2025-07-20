@@ -55,10 +55,10 @@ export class SPFMetadata {
                 ["b1", "b2", "b3",]
             ],
             kickoffBoxes: [
-                ["K"],
+                ["k"],
             ],
-            kickoffReturn: [
-                ["KR"]
+            kickoffReturnBoxes: [
+                ["kr"]
             ],
             boxInfo: {
                 "box_a": defRow1,
@@ -79,7 +79,7 @@ export class SPFMetadata {
                 "le": end, "lt": offLine, "lg": offLine, "c": offLine, "rg": offLine, "rt": offLine, "re": end,
                 "fl1": flanker, "qb": qb, "fl2": flanker,
                 "b1": backs, "b2": backs, "b3": backs,
-                "K": kicker, "KR": kickReturner
+                "k": kicker, "kr": kickReturner
             },
             labels: {
                 "box_a": "Box A",
@@ -180,12 +180,29 @@ export class SPFMetadata {
         return this.metadata.offensiveBoxes;
     }
 
+    getBoxLayoutForPlay(play) {
+        switch (play.toLowerCase()) {
+            case "kickoff":
+                return {
+                    offense: this.metadata.kickoffBoxes,
+                    defense: this.metadata.kickoffReturnBoxes
+                };
+
+            default:
+                // For standard plays, return both offense and defense layouts
+                return {
+                    offense: this.metadata.offensiveBoxes,
+                    defense: this.metadata.defensiveBoxes
+                };
+        }
+    }
+
     getPositionMetaData(box) {
-        return this.metadata.boxInfo[box];
+        return this.metadata.boxInfo[box.toLowerCase()];
     }
 
     getPositionForABox(box) {
-        return this.metadata.boxInfo[box].positions;
+        return this.metadata.boxInfo[box.toLowerCase()].positions;
     }
 
     getOffensivePlayNames() {

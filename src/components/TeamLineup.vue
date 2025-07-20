@@ -5,38 +5,32 @@
 
         <PlayerRow class="team-row" v-for="row in rowList" :active="active" :boxes="row" />
     </div>
-    <OffensePlaySelector v-if="active && !isDefense" />
-    <DefensePlaySelector v-if="active && isDefense" />
 </template>
 
 <script>
 import { defineComponent, ref, computed } from 'vue'
 import PlayerRow from './PlayerRow.vue'
-import { SPFMetadata } from "../game/SPFMetadata.js"
 import { useTeamsStore } from '../stores/teamStore';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from '../stores/gameStore';
-import OffensePlaySelector from './OffensePlaySelector.vue';
-import DefensePlaySelector from './DefensePlaySelector.vue';
 
 export default defineComponent({
     components: {
         PlayerRow,
-        OffensePlaySelector,
-        DefensePlaySelector,
     },
 
     props: {
         active: Boolean,
         title: String,
         isDefense: Boolean,
+        rows: {
+            type: Array,
+            required: true
+        }
     },
 
     setup(props) {
 
-        let spfMetadata = new SPFMetadata();
-
-        const rows = spfMetadata.getBoxLayout(props.isDefense);
         const { playerPositions } = storeToRefs(useTeamsStore());
         const gameStore = useGameStore();
         const { gameMsg } = storeToRefs(gameStore);
@@ -58,9 +52,9 @@ export default defineComponent({
         // }
 
         const rowList = computed(() => {
-            let a = rows;
+            let a = props.rows;
             if (!props.active) {
-                a = rows.slice().map(inner => inner.slice().reverse());
+                a = props.rows.slice().map(inner => inner.slice().reverse());
                 a.reverse();
             }
             return a;
@@ -72,7 +66,7 @@ export default defineComponent({
         // Other setup logic
 
         // Return anything needed for the component
-        return { rowList, rows, playerPositions, gameMsg };
+        return { rowList, playerPositions, gameMsg };
     },
 
 })

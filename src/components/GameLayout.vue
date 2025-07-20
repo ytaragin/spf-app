@@ -6,7 +6,7 @@
         <v-btn @click="getOtherTeamLineup()">Get Other Team Lineup</v-btn>
         <v-btn @click="fetchGame2()">Get Game Status</v-btn>
         
-        <PlaySelector :playType="currentPlayType" @update:playType="updatePlayType" />
+        <PlayTypeSelector :playType="currentPlayType" @update:playType="updatePlayType" />
         
         <PlayLineup :currentPlayType="currentPlayType" :offenseActive="offenseActive" />
         
@@ -30,13 +30,13 @@ import { useTeamsStore } from '@/stores/teamStore'
 import { storeToRefs } from 'pinia';
 
 import GameStatus from './GameStatus.vue'
-import PlaySelector from './PlaySelector.vue'
+import PlayTypeSelector from './PlayTypeSelector.vue'
 import PlayLineup from './PlayLineup.vue'
 
 export default defineComponent({
     components: {
         GameStatus,
-        PlaySelector,
+        PlayTypeSelector,
         PlayLineup
     },
 

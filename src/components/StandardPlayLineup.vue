@@ -1,14 +1,17 @@
 <template>
     <div class="standard-play-lineup">
-        <TeamLineup v-if="!offenseActive" :active="offenseActive" title="Offensive Lineup" :isDefense="!trueval" />
-        <TeamLineup :active="!offenseActive" title="Defensive Lineup" :isDefense="trueval" />
-        <TeamLineup v-if="offenseActive" :active="offenseActive" title="Offensive Lineup" :isDefense="!trueval" />
+        <TeamLineup v-if="!offenseActive" :active="offenseActive" title="Offensive Lineup" :isDefense="false" :rows="offenseRows" />
+        <TeamLineup :active="!offenseActive" title="Defensive Lineup" :isDefense="true" :rows="defenseRows" :playSelector="!offenseActive ? DefensePlaySelector : null" />
+        <TeamLineup v-if="offenseActive" :active="offenseActive" title="Offensive Lineup" :isDefense="false" :rows="offenseRows" :playSelector="offenseActive ? OffensePlaySelector : null" />
     </div>
 </template>
 
 <script>
 import { defineComponent, ref } from 'vue'
 import TeamLineup from './TeamLineup.vue'
+import OffensePlaySelector from './PlaySelectors/OffensePlaySelector.vue'
+import DefensePlaySelector from './PlaySelectors/DefensePlaySelector.vue'
+import { SPFMetadata } from "../game/SPFMetadata.js"
 
 export default defineComponent({
     name: 'StandardPlayLineup',
@@ -22,10 +25,15 @@ export default defineComponent({
         }
     },
     setup() {
-        const trueval = ref(true);
+        const spfMetadata = new SPFMetadata();
+        const offenseRows = spfMetadata.getBoxLayout(false);
+        const defenseRows = spfMetadata.getBoxLayout(true);
         
         return {
-            trueval
+            OffensePlaySelector,
+            DefensePlaySelector,
+            offenseRows,
+            defenseRows
         };
     }
 });
