@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, computed } from 'vue';
+import { defineComponent, ref, onMounted, computed, watch } from 'vue';
 import { useGameStore } from '../stores/gameStore';
 
 export default defineComponent({
@@ -60,9 +60,28 @@ export default defineComponent({
             emit('update:playType', playType);
         };
 
+        // Watch for changes in playTypes and auto-select if only one option
+        const updateSelectedPlayType = () => {
+            const availablePlayTypes = playTypes.value;
+            if (availablePlayTypes.length === 1) {
+                const singlePlayType = availablePlayTypes[0].value;
+                if (selectedPlayType.value !== singlePlayType) {
+                    selectedPlayType.value = singlePlayType;
+                    emit('update:playType', singlePlayType);
+                }
+            }
+        };
+
         // Fetch play types when component mounts
         onMounted(() => {
             gameStore.fetchPlayTypes();
+            // Check if we need to auto-select after initial fetch
+            updateSelectedPlayType();
+        });
+
+        // Watch for changes in playTypes and update selection accordingly
+        watch(playTypes, () => {
+            updateSelectedPlayType();
         });
 
         return {
