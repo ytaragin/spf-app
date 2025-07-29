@@ -62,7 +62,7 @@ export default defineComponent({
             //   "target": "FL1"
             // };
 
-            gamesStore.setOffensivePlay({ play_type: info.code, strategy: "Draw", target: targetBox.value.toUpperCase() });
+            gamesStore.setOffensivePlay({ play_type: info.code, strategy: "NoStrategy", target: targetBox.value.toUpperCase() });
         }
 
         return {

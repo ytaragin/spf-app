@@ -1,9 +1,11 @@
 export class TeamData {
 
     constructor(data) {
+        console.log('TeamData constructor called with:', data);
         this.availablePlayers = new Set([]);
         this.players = data.players;
         this.team = data.team;
+        console.log('TeamData this.team set to:', this.team);
         this.resetAllPlayers();
     }
 
@@ -56,9 +58,12 @@ export class TeamData {
     };
 
     teamName() {
-        if (this.team.name) {
+        console.log('teamName() called, this.team:', this.team);
+        if (this.team && this.team.name) {
+            console.log('Returning team name:', this.team.name);
             return this.team.name
         }
+        console.log('No team name found, returning XYZ');
         return "XYZ"
     }
 

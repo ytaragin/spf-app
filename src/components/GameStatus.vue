@@ -1,6 +1,6 @@
 <template>
     <div class="game-status">
-        <h1> Quarter: {{ gameState.quarter }} - Time Left: {{ gameState.time_remaining }}</h1>
+        <h1> Quarter: {{ gameState.quarter }} - Time Left: {{ formattedTimeRemaining }}</h1>
         <h1> Possession: {{ gameState.possession }} Position: {{ gameState.yard_line }}</h1>
 
         <v-container>
@@ -19,14 +19,26 @@
     </div>
 </template>
 <script setup>
-    import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { useTeamsStore } from '../stores/teamStore'
 import FootballField from './FootballField.vue';
 
-const gameState = ref(useGameStore().gameState)
-const homeTeam = ref(useTeamsStore().homeTeam)
-const awayTeam = ref(useTeamsStore().awayTeam)
+const gameStore = useGameStore()
+const teamsStore = useTeamsStore()
+
+// Use store properties with proper reactivity
+const gameState = computed(() => gameStore.gameState)
+const homeTeam = computed(() => teamsStore.homeTeam)
+const awayTeam = computed(() => teamsStore.awayTeam)
+
+// Format time from seconds to MM:SS
+const formattedTimeRemaining = computed(() => {
+    const totalSeconds = parseInt(gameState.value.time_remaining) || 0
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+})
 
 </script>
 

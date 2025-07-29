@@ -1,23 +1,20 @@
 <template>
   <div class="defense-play-selector">
-    Choose Play
-    <select v-model="selectedPlay">
-      <option v-for="play in plays" :key="play">{{ play }}</option>
-    </select>
+    <v-select v-model="selectedPlay" :items="playOptions" item-title="title" item-value="value" label="Choose Defensive Play" density="compact">
+    </v-select>
 
-    <select v-model="targetBox">
-      <option v-for="box in boxes" :key="box">{{ box }}</option>
-    </select>
+    <v-select v-model="targetBox" :items="boxes" label="Target Box" density="compact">
+    </v-select>
 
-    <button @click="submitPlay">Submit Play</button>
+    <v-btn @click="submitPlay">Submit Play</v-btn>
   </div>
 </template>
   
 <script>
-import { defineComponent, ref, watch, computed } from 'vue'
+
+import { defineComponent, ref, watch } from 'vue'
 import { SPFMetadata } from "../../game/SPFMetadata.js"
 import { useGameStore } from '@/stores/gameStore'
-import { storeToRefs } from 'pinia';
 
 
 export default defineComponent({
@@ -31,43 +28,46 @@ export default defineComponent({
 
 
     let spfMetadata = new SPFMetadata();
-    let plays = spfMetadata.getDefensivePlayNames();
-
+    const plays = spfMetadata.getDefensivePlayNames();
+    // Defensive play options with description for v-select
+    const playOptions = plays.map(code => {
+      const info = spfMetadata.getDefensePlayInfo(code);
+      return {
+        title: info.description || code,
+        value: code
+      };
+    });
     const boxes = ref([])
     const selectedPlay = ref(null);
     const targetBox = ref(null);
 
-    watch(selectedPlay, newValue => {
-      console.log(gamesStore.getPlayer)
-      let play = spfMetadata.getDefensePlayInfo(selectedPlay.value)
-      boxes.value = play.boxes.filter((box) => gamesStore.getPlayer(box))
-    })
+    watch(selectedPlay, (newValue) => {
+      if (!newValue) {
+        boxes.value = [];
+        return;
+      }
+      const playInfo = spfMetadata.getDefensePlayInfo(newValue);
+      boxes.value = playInfo.boxes.filter((box) => gamesStore.getPlayer(box));
+    });
 
     const submitPlay = () => {
-      let info = spfMetadata.getDefensePlayInfo(selectedPlay.value)
-      console.log(info);
-      // let p = {
-      //   "play_type": selectedPlay,
-      //   "strategy": "Draw",
-      //   "target": "FL1"
-      // };
-
-      gamesStore.setDefensivePlay({
-        defense_type: selectedPlay.value,
+      const info = spfMetadata.getDefensePlayInfo(selectedPlay.value);
+      const req = {
+        defense_type: info.code,
         strategy: "DoubleCover",
-        "key": targetBox.value.toUpperCase(),
-        "def_players": []
-      });
-
-    }
+        key: targetBox.value ? targetBox.value.toUpperCase() : "",
+        def_players: []
+      };
+      console.log(`Submitting defensive play: ${JSON.stringify(req)}`);
+      gamesStore.setDefensivePlay(req);
+    };
 
     return {
-      plays,
+      playOptions,
       boxes,
       selectedPlay,
       targetBox,
       submitPlay,
-      // getPlayer
     }
   },
   components: {
@@ -77,9 +77,9 @@ export default defineComponent({
 
 </script>
   
+
 <style>
 .defense-play-selector {
   display: flex;
 }
 </style>
-  

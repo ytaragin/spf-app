@@ -22,7 +22,6 @@ export default defineComponent({
     props: {
         active: Boolean,
         title: String,
-        isDefense: Boolean,
         rows: {
             type: Array,
             required: true

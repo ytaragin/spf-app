@@ -7,8 +7,8 @@ import { TeamData } from '../game/TeamData.js'
 
 
 export const useTeamsStore = defineStore('teams', () => {
-  const HOME = "home";
-  const AWAY = "away";
+  const HOME = "Home";
+  const AWAY = "Away";
 
   const teams = ref({});
   const team = ref(new TeamData({ team: {}, availablePlayers: new Set([]), players: { "QB-1": { name: "Joe", id: "QB-1" }, "RB-1": { name: "John", id: "RB-1" } }, }));
@@ -16,21 +16,26 @@ export const useTeamsStore = defineStore('teams', () => {
   const otherTeam = ref(AWAY);
 
   const version = ref(1);
+  const isLoading = ref(false);
 
   // let availablePlayers = ref(new Set([]));
   let playerPositions = ref({});
   let spfMetadata = new SPFMetadata();
 
+
+  const baseUrl = "http://127.0.0.1:8080";
+
   const fetchPlayers = async () => {
+    isLoading.value = true;
     try {
       console.log("Fetching players");
 
-      const response = await axios.get('http://localhost:8080/players/away');
+      const response = await axios.get(`${baseUrl}/players/away`);
       // team = JSON.parse(response.data);
       console.log(response.data)
       setTeam(response.data, AWAY);
 
-      const response2 = await axios.get('http://localhost:8080/players/home');
+      const response2 = await axios.get(`${baseUrl}/players/home`);
       // team = JSON.parse(response.data);
       console.log(response2.data)
       setTeam(response2.data, HOME);
@@ -39,6 +44,15 @@ export const useTeamsStore = defineStore('teams', () => {
 
     } catch (error) {
       console.error('Error fetching players:', error);
+      if (error.response) {
+        console.error('Server responded with error:', error.response.status, error.response.data);
+      } else if (error.request) {
+        console.error('No response received from server. Is the server running at http://localhost:8080?');
+      } else {
+        console.error('Error setting up request:', error.message);
+      }
+    } finally {
+      isLoading.value = false;
     }
   };
 
@@ -79,14 +93,11 @@ export const useTeamsStore = defineStore('teams', () => {
   }
 
   function setTeam(newTeam, side) {
-
-    console.log(`${side} Set`)
+    console.log(`${side} Set - Data received:`, newTeam);
+    console.log(`Team name from data: ${newTeam?.team?.name}`);
     teams.value[side] = new TeamData(newTeam);
-    // console.log(teams.value)
-
-    // console.log(`Selected Player Size: ${availablePlayers.value.size}`)
-
-    // console.log(team.value)
+    console.log(`Team data created for ${side}:`, teams.value[side]);
+    console.log(`Team name from TeamData: ${teams.value[side].teamName()}`);
   }
 
   const getPlayerByIDBothTeams = (id) => {
@@ -100,11 +111,15 @@ export const useTeamsStore = defineStore('teams', () => {
   };
 
   function getTeamName(side) {
-      console.log(`getting team name for ${side} - ${teams.value[side]}`);
+    console.log(`getting team name for ${side} - teams.value:`, teams.value);
+    console.log(`teams.value[${side}]:`, teams.value[side]);
     if (teams.value[side]) {
-      return teams.value[side].teamName()
+      const teamName = teams.value[side].teamName();
+      console.log(`Team name for ${side}: ${teamName}`);
+      return teamName;
     }
-    return "BLABLA"
+    console.log(`No team data for ${side}, returning fallback`);
+    return isLoading.value ? "Loading..." : "Team Not Set"
   }
 
   const homeTeam = computed(() => getTeamName(HOME))
@@ -149,12 +164,14 @@ export const useTeamsStore = defineStore('teams', () => {
     getPlayersForBox,
     getPlayersSetInBox,
     removePlayer,
+    managedTeam,
     getManagedTeam,
     toggleManagedTeam,
     version,
     updateVersion,
     homeTeam,
     awayTeam,
+    isLoading,
 
   };
 

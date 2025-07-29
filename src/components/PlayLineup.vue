@@ -4,17 +4,14 @@
             <TeamLineup v-if="!offenseActive" 
                 :active="offenseActive" 
                 title="Offensive Lineup" 
-                :isDefense="false" 
                 :rows="offenseRows" />
             <TeamLineup 
                 :active="!offenseActive" 
                 title="Defensive Lineup" 
-                :isDefense="true" 
                 :rows="defenseRows" />
             <TeamLineup v-if="offenseActive" 
                 :active="offenseActive" 
                 title="Offensive Lineup" 
-                :isDefense="false" 
                 :rows="offenseRows" />
 
             <v-btn @click="submitLineup" color="success" variant="elevated">Submit Lineup</v-btn>

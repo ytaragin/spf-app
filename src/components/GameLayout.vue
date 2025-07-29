@@ -1,6 +1,19 @@
 
 <template>
     <div class="game-layout">
+        <div class="team-management-section">
+            <v-btn @click="toggleTeam">Switch Managed Team</v-btn>
+            <div class="current-team-display">
+                Managing: <span class="team-highlight">{{ managedTeam }} - {{ managedTeamName }}</span>
+            </div>
+            <div class="current-side-display">
+                On: <span class="side-highlight">{{ currentSide }}</span>
+            </div>
+        </div>
+        <div class="teams-display">
+            Home: {{ homeTeamName }} | Away: {{ awayTeamName }}
+        </div>
+
         <GameStatus />
 
         <v-btn @click="getOtherTeamLineup()">Get Other Team Lineup</v-btn>
@@ -10,13 +23,9 @@
         
         <PlayLineup :currentPlayType="currentPlayType" :offenseActive="offenseActive" />
         
-        <v-btn @click="toggleOffense">Switch Offense/Defense</v-btn>
-        <div>
-            Managed team: {{ managedTeam }}
-            <v-btn @click="toggleTeam">Switch Managed Team</v-btn>
-        </div>
-
         <v-btn @click="runPlay" color="success" variant="elevated">Run Play</v-btn>
+
+        <PlayResult />
 
     </div>
 </template>
@@ -32,33 +41,50 @@ import { storeToRefs } from 'pinia';
 import GameStatus from './GameStatus.vue'
 import PlayTypeSelector from './PlayTypeSelector.vue'
 import PlayLineup from './PlayLineup.vue'
+import PlayResult from './PlayResult.vue'
 
 export default defineComponent({
     components: {
         GameStatus,
         PlayTypeSelector,
-        PlayLineup
+        PlayLineup,
+        PlayResult
     },
 
     setup(props) {
-        const { game, setDefensiveLineup, fetchGame, setDefensivePlay } = storeToRefs(useGameStore());
+        const { game, gameState, setDefensiveLineup, fetchGame, setDefensivePlay } = storeToRefs(useGameStore());
         const teamsStore = useTeamsStore()
-        const { getManagedTeam, toggleManagedTeam } = storeToRefs(teamsStore);
+        const { managedTeam, getManagedTeam, toggleManagedTeam, homeTeam, awayTeam } = storeToRefs(teamsStore);
         const gamesStore = useGameStore();
         const fetchGame2 = useGameStore().fetchGame;
 
-        const offenseActive = ref(true);
         const currentPlayType = ref('standard');
 
         const updatePlayType = (playType) => {
             currentPlayType.value = playType.toLowerCase();
         };
+        const homeTeamName = computed(() => teamsStore.homeTeam)
+        const awayTeamName = computed(() => teamsStore.awayTeam)
+        const managedTeamName = computed(() => {
+            return managedTeam.value === 'Home' ? homeTeamName.value : awayTeamName.value
+        })
 
-        const toggleOffense = () => {
-            offenseActive.value = !offenseActive.value;
-        };
+        // Calculate if offense is active based on possession
+        const offenseActive = computed(() => {
+            const possession = gameState.value?.possession
+            console.log(`Possession: ${possession} Managed Team: ${managedTeam.value}`)
+            const isOffense = managedTeam.value === possession
+            console.log(`Is Offense Active: ${isOffense}`)
+            return isOffense
+        })
 
-        const managedTeam = computed(() => teamsStore.getManagedTeam())
+        // Determine if managed team is on offense or defense using offenseActive
+        const currentSide = computed(() => {
+            const val = offenseActive.value ? 'Offense' : 'Defense'
+            console.log(`Current Side: ${val}`)
+            return val
+
+        })
 
         const toggleTeam = () => {
             teamsStore.toggleManagedTeam()
@@ -68,8 +94,12 @@ export default defineComponent({
             gamesStore.getLineup(offenseActive.value);
         }
 
-        const runPlay = () => {
-            gamesStore.runPlay();
+        const runPlay = async () => {
+            await gamesStore.runPlay();
+            // After running the play, fetch updated game state, play types and play result
+            await gamesStore.fetchGame();
+            await gamesStore.fetchPlayTypes();
+            await gamesStore.fetchPlayResult();
         }
         // const toggleManagedTeam = () => {
         //     switchManagedTeam()
@@ -83,15 +113,19 @@ export default defineComponent({
             fetchGame,
             fetchGame2,
             offenseActive,
-            toggleOffense,
             setDefensiveLineup,
             setDefensivePlay,
             toggleTeam,
-            managedTeam, getManagedTeam,
+            managedTeam, 
+            getManagedTeam,
             getOtherTeamLineup,
             runPlay,
             currentPlayType,
-            updatePlayType
+            updatePlayType,
+            homeTeamName,
+            awayTeamName,
+            managedTeamName,
+            currentSide
         };
     },
 
@@ -111,5 +145,58 @@ export default defineComponent({
 
 .game-layout > div {
     margin: 0.5rem 0;
+}
+
+.current-side {
+    font-size: 0.85em;
+    font-weight: normal;
+    margin-left: 0.5rem;
+    color: #666;
+}
+
+.team-management-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.5rem 0;
+}
+
+.current-side-display {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #333;
+}
+
+.current-team-display {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #333;
+}
+
+.side-highlight {
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 2px solid #1976d2;
+}
+
+.team-highlight {
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+    border: 2px solid #7b1fa2;
+}
+
+.teams-display {
+    font-size: 0.9em;
+    color: #555;
+    margin: 0.25rem 0;
+    padding-left: 0.5rem;
 }
 </style>

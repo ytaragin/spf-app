@@ -150,10 +150,10 @@ export class SPFMetadata {
             },
 
             defensivePlays: {
-                RunDefense: { code: "Run", description: "Run Defense", boxes: ["b1", "b2", "b3"] },
-                PassDefense: { code: "Pass", description: "Pass Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] },
-                PreventDefense: { code: "Prevent", description: "Prevent Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] },
-                Blitz: { code: "Pass - Blitz", description: "Pass - Blitz Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] }
+                RunDefense: { code: "RunDefense", description: "Run Defense", boxes: ["b1", "b2", "b3"] },
+                PassDefense: { code: "PassDefense", description: "Pass Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] },
+                PreventDefense: { code: "PreventDefense", description: "Prevent Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] },
+                Blitz: { code: "Blitz", description: "Pass - Blitz Defense", boxes: ["b1", "b2", "b3", "fl1", "fl2", "le", "re"] }
 
             },
 

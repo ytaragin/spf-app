@@ -20,6 +20,8 @@ export const useGameStore = defineStore("game", () => {
     })
     const lineups = ref({})
     const playTypes = ref([])
+    const nextPlayType = ref(null)
+    const playResult = ref(null)
 
 
     const baseUrl = "http://127.0.0.1:8080";
@@ -133,24 +135,16 @@ export const useGameStore = defineStore("game", () => {
             console.log('Play types response:', response);
             console.log('Play types data:', response.data);
 
-            // // Ensure we always set an array
-            // if (Array.isArray(response.data)) {
-            //     playTypes.value = response.data;
-            // } else if (response.data && typeof response.data === 'object') {
-            //     // If response.data is an object, try to extract an array from it
-            //     playTypes.value = Object.values(response.data);
-            // } else {
-            //     console.warn('Unexpected play types data format:', response.data);
-            //     playTypes.value = [];
-            // }
-
-            playTypes.value = response.data.allowed_types;
+            playTypes.value = response.data.allowed_types || [];
+            nextPlayType.value = response.data.next_type || null;
 
             console.log('Final playTypes value:', playTypes.value);
+            console.log('Final nextPlayType value:', nextPlayType.value);
         } catch (error) {
             // handle error here
             console.error('Error fetching play types:', error);
             playTypes.value = []; // Ensure it's always an array
+            nextPlayType.value = null; // Reset next play type on error
             if (error.response) {
                 // handle 400 error here
                 let msg = error.response.data;
@@ -161,6 +155,7 @@ export const useGameStore = defineStore("game", () => {
     }
 
     const getPlayTypes = computed(() => playTypes.value)
+    const getNextPlayType = computed(() => nextPlayType.value)
 
 
 
@@ -245,6 +240,33 @@ export const useGameStore = defineStore("game", () => {
         gameMsg.value = response.data;
     }
 
+    async function fetchPlayResult() {
+        let url = `${baseUrl}/game/play?result=true`;
+
+        try {
+            const response = await axios.get(url);
+            console.log('Play result response:', response);
+            console.log('Play result data:', response.data);
+
+            playResult.value = response.data;
+
+            console.log('Final playResult value:', playResult.value);
+        } catch (error) {
+            console.error('Error fetching play result:', error);
+            playResult.value = null;
+            if (error.response) {
+                let msg = error.response.data;
+                console.log(`Error was ${msg}`);
+                gameMsg.value = msg;
+            }
+        }
+    }
+
+    const getPlayResult = computed(() => playResult.value)
+
+    onMounted(() => {
+        fetchGame();
+    });
 
     // return everything that should be exposed to the store
     return {
@@ -260,6 +282,9 @@ export const useGameStore = defineStore("game", () => {
         getHardCodedValue,
         runPlay,
         fetchPlayTypes,
-        getPlayTypes
+        getPlayTypes,
+        getNextPlayType,
+        fetchPlayResult,
+        getPlayResult
     };
 });
