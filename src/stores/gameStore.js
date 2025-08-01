@@ -241,19 +241,28 @@ export const useGameStore = defineStore("game", () => {
     }
 
     async function fetchPlayResult() {
-        let url = `${baseUrl}/game/play?result=true`;
+        let url = `${baseUrl}/game/play`;
+        const response = await axios.get(url);
+        playResult.value = response.data;
+        console.log(`got ${response}`);
+        console.log(response.data);
+        console.log(playResult.value);
+    }
+
+    async function setPlayType(playType) {
+        let url = `${baseUrl}/game/nexttype`;
 
         try {
-            const response = await axios.get(url);
-            console.log('Play result response:', response);
-            console.log('Play result data:', response.data);
-
-            playResult.value = response.data;
-
-            console.log('Final playResult value:', playResult.value);
+            const response = await axios.post(url, playType, {
+                headers: {
+                    'Content-Type': 'text/plain'
+                }
+            });
+            gameMsg.value = response.data || 'Play type set successfully';
+            console.log('Play type set:', playType);
+            console.log('Server response:', response.data);
         } catch (error) {
-            console.error('Error fetching play result:', error);
-            playResult.value = null;
+            console.error('Error setting play type:', error);
             if (error.response) {
                 let msg = error.response.data;
                 console.log(`Error was ${msg}`);
@@ -284,6 +293,7 @@ export const useGameStore = defineStore("game", () => {
         fetchPlayTypes,
         getPlayTypes,
         getNextPlayType,
+        setPlayType,
         fetchPlayResult,
         getPlayResult
     };

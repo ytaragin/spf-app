@@ -1,6 +1,10 @@
 <template>
     <div class="play-selector">
         <h3>Play Type</h3>
+        <div v-if="nextPlayType" class="next-play-type">
+            <span class="next-play-label">Next Play Type:</span>
+            <span class="next-play-value">{{ nextPlayType }}</span>
+        </div>
         <div class="play-options">
             <button 
                 v-for="playType in playTypes" 
@@ -31,6 +35,9 @@ export default defineComponent({
         
         const selectedPlayType = ref(props.playType);
 
+        // Get nextPlayType from the game store
+        const nextPlayType = computed(() => gameStore.getNextPlayType);
+
         // Computed property to map server play types to the format expected by the component
         const playTypes = computed(() => {
             const storePlayTypes = gameStore.getPlayTypes;
@@ -58,6 +65,8 @@ export default defineComponent({
         const selectPlayType = (playType) => {
             selectedPlayType.value = playType;
             emit('update:playType', playType);
+            // Make server call to set the play type
+            gameStore.setPlayType(playType);
         };
 
         // Watch for changes in playTypes and auto-select if only one option
@@ -87,7 +96,8 @@ export default defineComponent({
         return {
             playTypes,
             selectedPlayType,
-            selectPlayType
+            selectPlayType,
+            nextPlayType
         };
     }
 });
@@ -99,6 +109,26 @@ export default defineComponent({
     padding: 0.5rem;
     border: 1px solid #eee;
     border-radius: 4px;
+}
+
+.next-play-type {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background-color: #f0f8ff;
+    border: 1px solid #d0e7ff;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.next-play-label {
+    font-weight: bold;
+    color: #2c5282;
+    margin-right: 0.5rem;
+}
+
+.next-play-value {
+    color: #1a365d;
+    font-weight: 500;
 }
 
 .play-options {

@@ -107,10 +107,12 @@
 
             watch(playerRec, (rec) => {
                 console.log(`x is ${rec}`)
-                recpos.value = rec.position;
-                playerName.value = rec.name;
-                playerTeam.value = rec.team;
-                console.log(playerTeam);
+                if (rec) {
+                    recpos.value = rec.position;
+                    playerName.value = rec.name;
+                    playerTeam.value = rec.team;
+                    console.log(playerTeam);
+                }
 
             })
 

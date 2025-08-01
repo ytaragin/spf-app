@@ -1,5 +1,9 @@
 <template>
     <div class="play-lineup">
+
+            <div class="play-type-info">
+                <strong>Current Play Type:</strong> {{ nextPlayType || 'Not set' }}
+            </div>
         <!-- Team Lineup Section - Show when lineup hasn't been submitted -->
             <TeamLineup v-if="!offenseActive" 
                 :active="offenseActive" 
@@ -19,7 +23,8 @@
         <!-- Play Selector Section - Show after lineup is submitted -->
         <div v-if="lineupSubmitted" class="play-selector-section">
             <h3>Select Play</h3>
-            <component :is="getPlaySelector()" :active="true" />
+            <component v-if="getPlaySelector" :is="getPlaySelector" :active="true" />
+            <div v-else>Loading play selector...</div>
         </div>
 
     </div>
@@ -42,10 +47,6 @@ export default defineComponent({
         TeamLineup
     },
     props: {
-        currentPlayType: {
-            type: String,
-            required: true
-        },
         offenseActive: {
             type: Boolean,
             required: true
@@ -54,14 +55,24 @@ export default defineComponent({
     setup(props) {
         const { playerPositions } = storeToRefs(useTeamsStore())
         const gameStore = useGameStore()
+        const { getNextPlayType } = storeToRefs(gameStore)
         const spfMetadata = new SPFMetadata()
         
         // State to track if lineup has been submitted
         const lineupSubmitted = ref(false)
 
+        // Get current play type from game store
+        // const currentPlayType = computed(() => getNextPlayType.value)
+        const nextPlayType = computed(() => getNextPlayType.value);
+
         // Get layout rows based on play type
         const playLayout = computed(() => {
-            return spfMetadata.getBoxLayoutForPlay(props.currentPlayType)
+            console.log("Getting Play Layout for type:", nextPlayType.value)
+            if (!nextPlayType.value) {
+                console.log("No play type available yet, returning empty layout")
+                return { offense: [], defense: [] }
+            }
+            return spfMetadata.getBoxLayoutForPlay(nextPlayType.value)
         })
 
         const offenseRows = computed(() => {
@@ -72,16 +83,22 @@ export default defineComponent({
             return playLayout.value.defense
         })
 
-        // Function to get the appropriate play selector component
-        const getPlaySelector = () => {
-            // For kickoff plays, show KickoffPlaySelector only when offense is active
-            if (props.currentPlayType === 'kickoff') {
-                return props.offenseActive ? KickoffPlaySelector : null
+        // Computed property to get the appropriate play selector component
+        const getPlaySelector = computed(() => {
+            // Return null if no play type is available yet
+            if (!nextPlayType.value) {
+                return null
             }
             
+            // For kickoff plays, show KickoffPlaySelector only when offense is active
+            if (nextPlayType.value === 'Kickoff') {
+                console.log("Returning KickoffPlaySelector for kickoff play")
+                return props.offenseActive ? KickoffPlaySelector : null
+            }
+            console.log(`Returning ${props.offenseActive ? 'OffensePlaySelector' : 'DefensePlaySelector'} for play type: ${nextPlayType.value}`)
             // Return the appropriate selector based on which side is active
             return props.offenseActive ? OffensePlaySelector : DefensePlaySelector
-        }
+        })
 
 
         const submitLineup = () => {
@@ -121,6 +138,7 @@ export default defineComponent({
             defenseRows,
             getPlaySelector,
             lineupSubmitted,
+            nextPlayType,
             submitLineup,
         }
     }

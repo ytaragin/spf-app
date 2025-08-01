@@ -21,7 +21,7 @@
         
         <PlayTypeSelector :playType="currentPlayType" @update:playType="updatePlayType" />
         
-        <PlayLineup :currentPlayType="currentPlayType" :offenseActive="offenseActive" />
+        <PlayLineup :offenseActive="offenseActive" />
         
         <v-btn @click="runPlay" color="success" variant="elevated">Run Play</v-btn>
 
@@ -56,7 +56,11 @@ export default defineComponent({
         const teamsStore = useTeamsStore()
         const { managedTeam, getManagedTeam, toggleManagedTeam, homeTeam, awayTeam } = storeToRefs(teamsStore);
         const gamesStore = useGameStore();
-        const fetchGame2 = useGameStore().fetchGame;
+        
+        const fetchGame2 = async () => {
+            await gamesStore.fetchGame();
+            await gamesStore.fetchPlayTypes();
+        };
 
         const currentPlayType = ref('standard');
 
