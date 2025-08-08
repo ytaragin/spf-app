@@ -21,7 +21,7 @@ export const useGameStore = defineStore("game", () => {
     const lineups = ref({})
     const playTypes = ref([])
     const nextPlayType = ref(null)
-    const playResult = ref(null)
+    const playResults = ref([])
 
 
     const baseUrl = "http://127.0.0.1:8080";
@@ -235,18 +235,75 @@ export const useGameStore = defineStore("game", () => {
         let url = `${baseUrl}/game/play`;
 
         // convert play object to JSON and send it to the server
-        const response = await axios.post(url);
+        let response;
+        try {
+            response = await axios.post(url);
+            gameMsg.value = response.data;
+        } catch (error) {
+            if (error.response) {
+                let msg = error.response.data;
+                console.log(`Error was ${msg}`);
+                gameMsg.value = msg;
+            } else {
+                throw error;
+                gameMsg.value = "Unknown Error";
+            }
+        }
         // update the game state with the response data
-        gameMsg.value = response.data;
+        // gameMsg.value = response.data;
     }
 
     async function fetchPlayResult() {
-        let url = `${baseUrl}/game/play`;
+        let url = `${baseUrl}/game/plays?result=true&count=1`;
         const response = await axios.get(url);
-        playResult.value = response.data;
+        const newPlay = Array.isArray(response.data) ? response.data[0] : response.data;
+
+        // Add the new play to the existing array of play results only if play_counter has increased
+        if (newPlay && newPlay.new_state && newPlay.new_state.play_counter) {
+            const newPlayCounter = newPlay.new_state.play_counter;
+            const mostRecentPlay = playResults.value.length > 0 ? playResults.value[playResults.value.length - 1] : null;
+            const mostRecentPlayCounter = mostRecentPlay && mostRecentPlay.new_state ? mostRecentPlay.new_state.play_counter : 0;
+
+            // Only add if this is a new play (higher play counter)
+            if (newPlayCounter > mostRecentPlayCounter) {
+                playResults.value.push(newPlay);
+                console.log(`Added new play with counter ${newPlayCounter}`);
+            } else {
+                console.log(`Skipping play - counter ${newPlayCounter} not greater than most recent ${mostRecentPlayCounter}`);
+            }
+        }
+
         console.log(`got ${response}`);
         console.log(response.data);
-        console.log(playResult.value);
+        console.log('All play results:', playResults.value);
+    }
+
+    async function fetchAllPlayResults() {
+        let url = `${baseUrl}/game/plays?result=true`;
+        const response = await axios.get(url);
+        const newPlay = Array.isArray(response.data) ? response.data[0] : response.data;
+
+        playResults.value = response.data || [];
+        console.log(`got ${response}`);
+        console.log(response.data);
+        console.log('All play results:', playResults.value);
+    }
+
+    async function fetchGameData(fullSync = false) {
+        console.log("Fetching complete game data (state, play types, and play result)")
+        try {
+            await fetchGame();
+            await fetchPlayTypes();
+            if (fullSync) {
+                await fetchAllPlayResults();
+            } else {
+                await fetchPlayResult();
+            }
+            console.log("Successfully fetched all game data");
+        } catch (error) {
+            console.error("Error fetching game data:", error);
+            gameMsg.value = "Error fetching game data";
+        }
     }
 
     async function setPlayType(playType) {
@@ -271,8 +328,12 @@ export const useGameStore = defineStore("game", () => {
         }
     }
 
-    const getPlayResult = computed(() => playResult.value)
-
+    const getPlayResult = computed(() => {
+        return playResults.value.length > 0 ? playResults.value[playResults.value.length - 1] : null;
+    })
+    const getAllPlayResults = computed(() => {
+        return playResults.value;
+    })
     onMounted(() => {
         fetchGame();
     });
@@ -295,6 +356,8 @@ export const useGameStore = defineStore("game", () => {
         getNextPlayType,
         setPlayType,
         fetchPlayResult,
-        getPlayResult
+        fetchGameData,
+        getPlayResult,
+        getAllPlayResults
     };
 });

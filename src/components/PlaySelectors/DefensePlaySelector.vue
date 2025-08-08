@@ -54,10 +54,13 @@ export default defineComponent({
       const info = spfMetadata.getDefensePlayInfo(selectedPlay.value);
       const req = {
         defense_type: info.code,
-        strategy: "DoubleCover",
-        key: targetBox.value ? targetBox.value.toUpperCase() : "",
+        strategy: "Straight",
         def_players: []
       };
+      
+      if (targetBox.value) {
+        req.key = targetBox.value.toUpperCase();
+      }
       console.log(`Submitting defensive play: ${JSON.stringify(req)}`);
       gamesStore.setDefensivePlay(req);
     };

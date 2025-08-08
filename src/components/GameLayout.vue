@@ -17,7 +17,8 @@
         <GameStatus />
 
         <v-btn @click="getOtherTeamLineup()">Get Other Team Lineup</v-btn>
-        <v-btn @click="fetchGame2()">Get Game Status</v-btn>
+        <v-btn @click="fetchGame(false)">Get Game Status</v-btn>
+        <v-btn @click="fetchGame(true)">Full Sync</v-btn>
         
         <PlayTypeSelector :playType="currentPlayType" @update:playType="updatePlayType" />
         
@@ -26,6 +27,8 @@
         <v-btn @click="runPlay" color="success" variant="elevated">Run Play</v-btn>
 
         <PlayResult />
+
+        <PlayHistory />
 
     </div>
 </template>
@@ -42,24 +45,25 @@ import GameStatus from './GameStatus.vue'
 import PlayTypeSelector from './PlayTypeSelector.vue'
 import PlayLineup from './PlayLineup.vue'
 import PlayResult from './PlayResult.vue'
+import PlayHistory from './PlayHistory.vue'
 
 export default defineComponent({
     components: {
         GameStatus,
         PlayTypeSelector,
         PlayLineup,
-        PlayResult
+        PlayResult,
+        PlayHistory
     },
 
     setup(props) {
-        const { game, gameState, setDefensiveLineup, fetchGame, setDefensivePlay } = storeToRefs(useGameStore());
+        const { gameState } = storeToRefs(useGameStore());
         const teamsStore = useTeamsStore()
-        const { managedTeam, getManagedTeam, toggleManagedTeam, homeTeam, awayTeam } = storeToRefs(teamsStore);
+        const { managedTeam} = storeToRefs(teamsStore);
         const gamesStore = useGameStore();
         
-        const fetchGame2 = async () => {
-            await gamesStore.fetchGame();
-            await gamesStore.fetchPlayTypes();
+        const fetchGame = async (fullSync) => {
+            await gamesStore.fetchGameData(fullSync);
         };
 
         const currentPlayType = ref('standard');
@@ -101,9 +105,7 @@ export default defineComponent({
         const runPlay = async () => {
             await gamesStore.runPlay();
             // After running the play, fetch updated game state, play types and play result
-            await gamesStore.fetchGame();
-            await gamesStore.fetchPlayTypes();
-            await gamesStore.fetchPlayResult();
+            await gamesStore.fetchGameData(false);
         }
         // const toggleManagedTeam = () => {
         //     switchManagedTeam()
@@ -113,15 +115,10 @@ export default defineComponent({
 
         // return the properties and methods that you want to use in the template
         return {
-            game,
             fetchGame,
-            fetchGame2,
             offenseActive,
-            setDefensiveLineup,
-            setDefensivePlay,
             toggleTeam,
             managedTeam, 
-            getManagedTeam,
             getOtherTeamLineup,
             runPlay,
             currentPlayType,
