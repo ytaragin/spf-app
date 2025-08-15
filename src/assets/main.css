@@ -1,10 +1,11 @@
 @import './base.css';
 
 #app {
-  max-width: 1280px;
+  /* Allow the application to span the full viewport width */
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
-
+  /* keep horizontal centering of inner max-width containers */
+  padding: 1.5rem 2rem;
   font-weight: normal;
 }
 
@@ -21,15 +22,23 @@ a,
   }
 }
 
+/* Remove previous large-screen grid that constrained layout; provide optional wider centered content */
 @media (min-width: 1024px) {
   body {
-    display: flex;
-    place-items: center;
+    /* Use normal document flow; if vertical centering desired later we can revisit */
+    display: block;
   }
 
   #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+    /* For very wide screens, cap extreme line lengths while still using more space */
+    max-width: 95vw;
+    /* nearly full width */
   }
+}
+
+/* Utility container (can be used later) */
+.wide-centered {
+  max-width: 1800px;
+  margin: 0 auto;
+  width: 100%;
 }

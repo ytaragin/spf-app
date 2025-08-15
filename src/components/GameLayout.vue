@@ -137,7 +137,10 @@ export default defineComponent({
 
 <style>
 .game-layout {
-    padding: 1rem;
+    padding: 1rem 1.25rem 2rem;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1600px; /* give the app room to breathe on large screens */
 }
 
 .game-layout .v-btn {
@@ -146,6 +149,12 @@ export default defineComponent({
 
 .game-layout > div {
     margin: 0.5rem 0;
+}
+
+@media (min-width: 1400px) {
+    .game-layout {
+        max-width: 1800px;
+    }
 }
 
 .current-side {
