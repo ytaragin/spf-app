@@ -70,6 +70,7 @@
             const recpos = ref('Plain');
             const playerName= ref('-');
             const playerTeam = ref({name:"-", year:"-"});
+            const emptyPlayer = { position: 'Plain', name: '-', team: { name: '-', year: '-' } };
 
             const currentView = computed(() => {
                 let rec =  getPlayerRecord(props.boxName);
@@ -89,14 +90,16 @@
 
             function getPlayerRecord(boxName) {
                 let rec = null;
-                let id = gamesStore.getPlayer(boxName);
-                if (id) {
-                    // console.log(`Returned id: ${id}`)
-                    rec = teamStore.getPlayerByIDBothTeams(id)
-                    // console.log(rec)
+                // Prefer locally selected playerPositions first so Clear reflects immediately
+                rec = playerPositions.value[boxName];
+                if (!rec) {
+                    let id = gamesStore.getPlayer(boxName);
+                    if (id) {
+                        rec = teamStore.getPlayerByIDBothTeams(id);
+                    }
                 }
                 if (!rec) {
-                    rec = playerPositions.value[boxName];
+                    return emptyPlayer;
                 }
                 return rec;
             }
@@ -106,15 +109,12 @@
             })
 
             watch(playerRec, (rec) => {
-                console.log(`x is ${rec}`)
-                if (rec) {
-                    recpos.value = rec.position;
-                    playerName.value = rec.name;
-                    playerTeam.value = rec.team;
-                    console.log(playerTeam);
-                }
-
-            })
+                // Always update, even when cleared; fall back to shared emptyPlayer object
+                const r = rec || emptyPlayer;
+                recpos.value = r.position;
+                playerName.value = r.name;
+                playerTeam.value = r.team;
+            }, { immediate: true })
 
             const playerPosition = computed(() => {
                 const player = getPlayerRecord(props.boxName);

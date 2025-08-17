@@ -87,6 +87,8 @@ export default defineComponent({
         const clearPlayer = () => {
             console.log(`Trying to remove ${props.boxName}`);
             teamStore.removePlayer(props.boxName);
+            // Reset the selection in the v-select UI
+            selectedPlayerId.value = "";
         }
 
         const getPlayerRecord = (id) => {
@@ -118,13 +120,10 @@ export default defineComponent({
 <style>
 .player-selector {
     display: flex;
-    xalign-items: center;
     flex-direction: column;
 }
                 .player-name {
                 width: 100%;
-                }
-                .player-buttons {
                 }
 </style>
 

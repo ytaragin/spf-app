@@ -10,30 +10,43 @@
                 :key="index"
                 class="play-item"
             >
-                <div class="play-number">Play {{ index + 1 }}</div>
-                <div class="play-details">
-                    <span class="possession">{{ play.new_state.possession }}</span>
-                    <span class="yard-line">Yard {{ play.new_state.yard_line }}</span>
-                    <span class="result">{{ formatPlayResult(play.result) }}</span>
-                </div>
+                <button class="play-summary" @click="toggle(index)" :aria-expanded="isExpanded(index)" :aria-controls="'play-details-' + index">
+                    <div class="indicator">
+                        <span class="chevron" :class="{ open: isExpanded(index) }">▸</span>
+                        <span class="play-number">Play {{ index + 1 }}</span>
+                    </div>
+                    <div class="play-details">
+                        <span class="possession">{{ play.new_state.possession }}</span>
+                        <span class="yard-line">Yard {{ play.new_state.yard_line }}</span>
+                        <span class="result">{{ formatPlayResult(play.result) }}</span>
+                    </div>
+                </button>
+                <transition name="collapse">
+                    <div v-if="isExpanded(index)" :id="'play-details-' + index" class="play-expanded">
+                        <PlayResultDetails :play="play" />
+                    </div>
+                </transition>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { storeToRefs } from 'pinia'
+import PlayResultDetails from './PlayResultDetails.vue'
 
 export default defineComponent({
     name: 'PlayHistory',
+    components: { PlayResultDetails },
     
     setup() {
         const gameStore = useGameStore()
         const { getAllPlayResults } = storeToRefs(gameStore)
         
         const playResults = computed(() => getAllPlayResults.value)
+        const expanded = ref(new Set())
         
         const formatPlayResult = (result) => {
             if (result.result_type === 'TurnOver') {
@@ -42,10 +55,22 @@ export default defineComponent({
             // Add more result type formatting as needed
             return `${result.result_type} - ${result.result} yards`
         }
+        const toggle = (index) => {
+            if (expanded.value.has(index)) {
+                expanded.value.delete(index)
+            } else {
+                expanded.value.add(index)
+            }
+            // force ref reactivity for Set mutation
+            expanded.value = new Set(expanded.value)
+        }
+        const isExpanded = (index) => expanded.value.has(index)
         
         return {
             playResults,
-            formatPlayResult
+            formatPlayResult,
+            toggle,
+            isExpanded
         }
     }
 })
@@ -79,14 +104,25 @@ export default defineComponent({
     gap: 0.5rem;
 }
 
-.play-item {
+.play-item {    
+    background-color: white;
+    border-radius: 4px;
+    border-left: 4px solid #1976d2; 
+}
+
+.play-summary {
+    all: unset;
+    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 1rem;
     padding: 0.5rem;
-    background-color: white;
-    border-radius: 4px;
-    border-left: 4px solid #1976d2;
+    width: 100%;
+}
+
+.play-summary:focus-visible {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
 }
 
 .play-number {
@@ -115,5 +151,39 @@ export default defineComponent({
 .result {
     color: #2e7d32;
     font-weight: 500;
+}
+
+.indicator { 
+    display: flex; 
+    align-items: center; 
+    gap: .25rem;
+}
+
+.chevron { 
+    transition: transform .2s ease; 
+    display: inline-block; 
+    font-size: .8rem;
+}
+.chevron.open { 
+    transform: rotate(90deg); 
+}
+
+.play-expanded { 
+    padding: .5rem 1rem 1rem 1rem; 
+    border-top: 1px solid #eee; 
+}
+
+/* Collapse transition */
+.collapse-enter-from, .collapse-leave-to { 
+    max-height: 0; 
+    opacity: 0; 
+    overflow: hidden; 
+}
+.collapse-enter-to, .collapse-leave-from { 
+    max-height: 1000px; 
+    opacity: 1; 
+}
+.collapse-enter-active, .collapse-leave-active { 
+    transition: max-height .25s ease, opacity .25s ease; 
 }
 </style>
