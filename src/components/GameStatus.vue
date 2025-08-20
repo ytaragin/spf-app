@@ -12,7 +12,10 @@
                     </v-row>
                 </v-col>
                 <v-col cols="12">
-                    <FootballField  :ballPosition="gameState.yard_line" />
+                    <FootballField  
+                        :ballPosition="gameState.yard_line" 
+                        :firstDownTarget="gameState.first_down_target"
+                    />
                 </v-col>
             </v-row>
         </v-container>

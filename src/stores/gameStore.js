@@ -275,6 +275,9 @@ export const useGameStore = defineStore("game", () => {
             if (newPlayCounter > mostRecentPlayCounter) {
                 playResults.value.push(newPlay);
                 console.log(`Added new play with counter ${newPlayCounter}`);
+
+                // Update the current game state with the new state from the play result
+                updateGameStateFromPlayResult(newPlay, "new play result");
             } else {
                 console.log(`Skipping play - counter ${newPlayCounter} not greater than most recent ${mostRecentPlayCounter}`);
             }
@@ -288,9 +291,15 @@ export const useGameStore = defineStore("game", () => {
     async function fetchAllPlayResults() {
         let url = `${baseUrl}/game/plays?result=true`;
         const response = await axios.get(url);
-        const newPlay = Array.isArray(response.data) ? response.data[0] : response.data;
 
         playResults.value = response.data || [];
+
+        // Update the current game state with the most recent play result's new_state
+        if (playResults.value.length > 0) {
+            const mostRecentPlay = playResults.value[playResults.value.length - 1];
+            updateGameStateFromPlayResult(mostRecentPlay, "most recent play from all results");
+        }
+
         console.log(`got ${response}`);
         console.log(response.data);
         console.log('All play results:', playResults.value);
@@ -341,6 +350,16 @@ export const useGameStore = defineStore("game", () => {
     const getAllPlayResults = computed(() => {
         return playResults.value;
     })
+
+    // Shared function to update game state from play result
+    function updateGameStateFromPlayResult(playResult, source = "play result") {
+        if (playResult && playResult.new_state) {
+            gameState.value = { ...playResult.new_state };
+            console.log(`Updated game state from ${source} - yard line now at: ${gameState.value.yard_line}`);
+            return true;
+        }
+        return false;
+    }
     onMounted(() => {
         fetchGame();
     });
@@ -385,6 +404,7 @@ export const useGameStore = defineStore("game", () => {
         fetchGameData,
         getPlayResult,
         getAllPlayResults,
+        updateGameStateFromPlayResult,
         // Hover state and functions
         hoveredBox,
         relatedBox,
