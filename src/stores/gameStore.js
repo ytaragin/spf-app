@@ -1,8 +1,12 @@
 import { defineStore } from "pinia";
 import { computed, onMounted, ref, reactive } from 'vue'
 import axios from "axios";
+import { SPFMetadata } from "../game/SPFMetadata.js";
 
 export const useGameStore = defineStore("game", () => {
+    // SPFMetadata instance
+    const spfMetadata = new SPFMetadata();
+
     // initial state
     const gameMsg = ref("+++");
     const game = ref(null);
@@ -23,6 +27,9 @@ export const useGameStore = defineStore("game", () => {
     const nextPlayType = ref(null)
     const playResults = ref([])
 
+    // Hover state for SpotComponent relationships
+    const hoveredBox = ref(null)
+    const relatedBox = ref(null)
 
     const baseUrl = "http://127.0.0.1:8080";
 
@@ -338,6 +345,25 @@ export const useGameStore = defineStore("game", () => {
         fetchGame();
     });
 
+    // Hover management functions
+    function setHoveredBox(boxName) {
+        hoveredBox.value = boxName;
+        relatedBox.value = spfMetadata.getRelatedPassDefenseBox(boxName);
+    }
+
+    function clearHover() {
+        hoveredBox.value = null;
+        relatedBox.value = null;
+    }
+
+    function isBoxHighlighted(boxName) {
+        return boxName === hoveredBox.value || boxName === relatedBox.value;
+    }
+
+    function getBoxLabel(boxName) {
+        return spfMetadata.getBoxLabel(boxName);
+    }
+
     // return everything that should be exposed to the store
     return {
         game,
@@ -358,6 +384,13 @@ export const useGameStore = defineStore("game", () => {
         fetchPlayResult,
         fetchGameData,
         getPlayResult,
-        getAllPlayResults
+        getAllPlayResults,
+        // Hover state and functions
+        hoveredBox,
+        relatedBox,
+        setHoveredBox,
+        clearHover,
+        isBoxHighlighted,
+        getBoxLabel
     };
 });

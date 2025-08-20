@@ -157,6 +157,16 @@ export class SPFMetadata {
 
             },
 
+            passDefenseGuarding: {
+                "re": "box_n",
+                "le": "box_k",
+                "fl1": "box_o",
+                "fl2": "box_m",
+                "b1": "box_f",
+                "b2": "box_j",
+                "b3": "box_h"
+            }
+
 
         }
     }
@@ -232,6 +242,39 @@ export class SPFMetadata {
             return null;
         }
         return this.metadata.defensivePlays[play];
+    }
+
+    getPassDefenderForBox(box) {
+        if (!box) {
+            return null;
+        }
+        return this.metadata.passDefenseGuarding[box.toLowerCase()];
+    }
+
+    getBoxDefendedBy(box) {
+        if (!box) {
+            return null;
+        }
+        return Object.keys(this.metadata.passDefenseGuarding).find(key =>
+            this.metadata.passDefenseGuarding[key] === box.toLowerCase()
+        );
+    }
+
+    getRelatedPassDefenseBox(box) {
+        // Try to find what this box defends
+        const defendedBox = this.getPassDefenderForBox(box);
+        if (defendedBox) {
+            return defendedBox;
+        }
+
+        // Try to find what defends this box
+        const defenderBox = this.getBoxDefendedBy(box);
+        if (defenderBox) {
+            return defenderBox;
+        }
+
+        return null;
+
     }
 
 }
