@@ -1,7 +1,8 @@
 <template>
     <div class="game-status">
         <h1> Quarter: {{ gameState.quarter }} - Time Left: {{ formattedTimeRemaining }}</h1>
-        <h1> Possession: {{ gameState.possession }} Position: {{ gameState.yard_line }}</h1>
+        <h1> Possession: {{ possessionTeam }} Position: {{ gameState.yard_line }}</h1>
+        <h1> Down: {{ gameState.down }} - Yards to go: {{ yardsToGo }} </h1>
 
         <v-container>
             <v-row>
@@ -41,6 +42,21 @@ const formattedTimeRemaining = computed(() => {
     const minutes = Math.floor(totalSeconds / 60)
     const seconds = totalSeconds % 60
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
+})
+
+// Calculate yards to go for first down
+const yardsToGo = computed(() => {
+    return Math.max(0, gameState.value.first_down_target - gameState.value.yard_line)
+})
+
+// Get the team name for possession display
+const possessionTeam = computed(() => {
+    if (gameState.value.possession === 'Home') {
+        return homeTeam.value
+    } else if (gameState.value.possession === 'Away') {
+        return awayTeam.value
+    }
+    return gameState.value.possession // fallback to original value
 })
 
 </script>
