@@ -30,7 +30,7 @@ export const useGameStore = defineStore('game', () => {
   const hoveredBox = ref(null)
   const relatedBox = ref(null)
 
-  const baseUrl = 'http://127.0.0.1:8080'
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
 
   // methods
   async function fetchGame() {

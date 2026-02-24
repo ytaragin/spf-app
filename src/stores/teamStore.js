@@ -27,7 +27,7 @@ export const useTeamsStore = defineStore('teams', () => {
   let playerPositions = ref({})
   let spfMetadata = new SPFMetadata()
 
-  const baseUrl = 'http://127.0.0.1:8080'
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
 
   const fetchPlayers = async () => {
     isLoading.value = true
@@ -44,9 +44,7 @@ export const useTeamsStore = defineStore('teams', () => {
       if (error.response) {
         console.error('Server responded with error:', error.response.status, error.response.data)
       } else if (error.request) {
-        console.error(
-          'No response received from server. Is the server running at http://localhost:8080?'
-        )
+        console.error(`No response received from server. Is the server running at ${baseUrl}?`)
       } else {
         console.error('Error setting up request:', error.message)
       }

@@ -2,7 +2,7 @@
   <h1>{{ title }}</h1>
   <h3>-{{ gameMsg }}</h3>
   <div class="team-lineup">
-    <PlayerRow class="team-row" v-for="row in rowList" :active="active" :boxes="row" />
+    <PlayerRow class="team-row" v-for="(row, index) in rowList" :key="index" :active="active" :boxes="row" />
   </div>
 </template>
 
