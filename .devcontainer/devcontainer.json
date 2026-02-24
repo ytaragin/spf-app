@@ -8,7 +8,8 @@
       "installOhMyZsh": true,
       "configureZshAsDefaultShell": true,
       "username": "node"
-    }
+    },
+    "ghcr.io/danzilberdan/devcontainers/opencode:0": {}
   },
 
   "customizations": {
@@ -40,6 +41,14 @@
       "onAutoForward": "notify"
     }
   },
+
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.local/share/opencode/auth.json",
+      "target": "/mnt/opencode-auth.json",
+      "type": "bind"
+    }
+  ],
 
   "postCreateCommand": "npm install",
 
