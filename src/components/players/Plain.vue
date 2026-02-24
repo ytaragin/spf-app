@@ -1,13 +1,7 @@
-
-
 <template>
-    <div>
-      Plain 
-    </div>
+  <div>Plain</div>
 </template>
 
 <script>
-
-export default {
-}
+export default {}
 </script>

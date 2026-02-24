@@ -14,9 +14,8 @@ import { md1 } from 'vuetify/blueprints'
 const vuetify = createVuetify({
   components,
   directives,
-    blueprint: md1,
+  blueprint: md1
 })
-
 
 const app = createApp(App)
 

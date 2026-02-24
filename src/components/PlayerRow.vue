@@ -4,25 +4,13 @@
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import SpotComponent from './SpotComponent.vue';
+<script setup>
+import SpotComponent from './SpotComponent.vue'
 
-
-export default defineComponent({
-  props: {
-    boxes: { type: Array, required: true },
-    active: Boolean
-  },
-  setup(props) {
-    return {};
-  },
-  components: {
-    SpotComponent
-  }
+defineProps({
+  boxes: { type: Array, required: true },
+  active: Boolean
 })
-
-
 </script>
 
 <style>
