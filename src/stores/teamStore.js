@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import axios from 'axios'
 import { SPFMetadata } from '../game/SPFMetadata.js'
 import { useGameStore } from './gameStore.js'
@@ -129,9 +129,6 @@ export const useTeamsStore = defineStore('teams', () => {
     return team.value.players
   })
 
-  onMounted(() => {
-    fetchPlayers()
-  })
 
   return {
     fetchPlayers,

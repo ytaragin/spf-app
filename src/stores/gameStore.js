@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, onMounted, ref, reactive } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import axios from 'axios'
 import { SPFMetadata } from '../game/SPFMetadata.js'
 
@@ -303,9 +303,6 @@ export const useGameStore = defineStore('game', () => {
     }
     return false
   }
-  onMounted(() => {
-    fetchGame()
-  })
 
   // Hover management functions
   function setHoveredBox(boxName) {

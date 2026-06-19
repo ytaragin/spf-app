@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "git-github",
+  "owner": "akaszubski",
+  "repo": "autonomous-dev",
+  "path": "plugins/autonomous-dev/skills/git-github",
+  "branch": "master",
+  "sha": "0f580da529cb7528ea2af65d17f90f201c95d63d",
+  "source": "manual"
+}

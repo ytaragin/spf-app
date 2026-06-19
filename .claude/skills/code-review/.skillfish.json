@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "code-review",
+  "owner": "nice-wolf-studio",
+  "repo": "agent-github-skills",
+  "path": "skills/code-review",
+  "branch": "main",
+  "sha": "b8e63a173af1270fe70ea0f802fd0c67f2994b36",
+  "source": "manual"
+}
