@@ -31,26 +31,38 @@
       </div>
     </v-navigation-drawer>
 
-    <h1>Quarter: {{ gameState.quarter }} - Time Left: {{ formattedTimeRemaining }}</h1>
-    <h1>Possession: {{ possessionTeam }} Position: {{ gameState.yard_line }}</h1>
-    <h1>Down: {{ gameState.down }} - Yards to go: {{ yardsToGo }}</h1>
+    <v-card variant="outlined" class="scoreboard-card mb-3">
+      <v-card-text>
+        <v-row align="center" justify="space-between" class="mb-2">
+          <v-col cols="12" sm="6">
+            <div class="d-flex align-center ga-2 flex-wrap">
+              <v-chip color="primary" variant="tonal" size="small">Q{{ gameState.quarter }}</v-chip>
+              <v-chip variant="tonal" size="small">{{ formattedTimeRemaining }}</v-chip>
+              <v-chip variant="tonal" size="small">{{ gameState.down }} & {{ yardsToGo }}</v-chip>
+            </div>
+          </v-col>
+          <v-col cols="12" sm="6" class="text-sm-right">
+            <span class="text-body-2">
+              {{ possessionTeam }} ball at {{ gameState.yard_line }}
+            </span>
+          </v-col>
+        </v-row>
 
-    <v-container>
-      <v-row>
-        <v-col cols="12">
-          <v-row justify="space-between">
-            <v-col>Home ({{ homeTeam }}): {{ gameState.home_score }}</v-col>
-            <v-col>Away ({{ awayTeam }}): {{ gameState.away_score }}</v-col>
-          </v-row>
-        </v-col>
-        <v-col cols="12">
-          <FootballField
-            :ballPosition="gameState.yard_line"
-            :firstDownTarget="gameState.first_down_target"
-          />
-        </v-col>
-      </v-row>
-    </v-container>
+        <v-row align="center" justify="space-between" class="text-h6">
+          <v-col cols="6">Home ({{ homeTeam }}): {{ gameState.home_score }}</v-col>
+          <v-col cols="6" class="text-right">Away ({{ awayTeam }}): {{ gameState.away_score }}</v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+
+    <v-card variant="outlined" class="field-card mb-3">
+      <v-card-text>
+        <FootballField
+          :ballPosition="gameState.yard_line"
+          :firstDownTarget="gameState.first_down_target"
+        />
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 <script setup>

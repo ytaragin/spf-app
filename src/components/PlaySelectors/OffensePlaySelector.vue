@@ -1,15 +1,15 @@
 <template>
-  <div class="offense-play-selector">
-    <v-select v-model="selectedPlay" :items="plays" label="Choose Play" density="compact">
-    </v-select>
+  <v-card variant="outlined" class="offense-play-selector">
+    <v-card-title class="text-subtitle-1 py-2">Offensive Play</v-card-title>
+    <v-card-text>
+      <v-select v-model="selectedPlay" :items="plays" label="Choose Play" density="compact">
+      </v-select>
 
-    <v-select v-model="targetBox" :items="boxes" label="Target Box" density="compact"> </v-select>
-    <!-- <select v-model="targetBox"> -->
-    <!--     <option v-for="box in boxes" :key="box">{{ box }}</option> -->
-    <!-- </select> -->
+      <v-select v-model="targetBox" :items="boxes" label="Target Box" density="compact"> </v-select>
 
-    <v-btn @click="submitPlay">Submit Play</v-btn>
-  </div>
+      <v-btn color="primary" @click="submitPlay">Submit Play</v-btn>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -44,9 +44,3 @@ const submitPlay = () => {
   })
 }
 </script>
-
-<style>
-.offense-play-selector {
-  display: flex;
-}
-</style>

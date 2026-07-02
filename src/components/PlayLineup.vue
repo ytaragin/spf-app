@@ -21,11 +21,13 @@
     <v-btn @click="submitLineup" color="success" variant="elevated">Submit Lineup</v-btn>
 
     <!-- Play Selector Section - Show after lineup is submitted -->
-    <div v-if="lineupSubmitted" class="play-selector-section">
-      <h3>Select Play</h3>
-      <component v-if="getPlaySelector" :is="getPlaySelector" :active="true" />
-      <div v-else>Loading play selector...</div>
-    </div>
+    <v-card v-if="lineupSubmitted" variant="outlined" class="play-selector-section">
+      <v-card-title class="text-subtitle-1 py-2">Select Play</v-card-title>
+      <v-card-text>
+        <component v-if="getPlaySelector" :is="getPlaySelector" :active="true" />
+        <div v-else class="text-medium-emphasis">Loading play selector...</div>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 
@@ -125,25 +127,5 @@ const submitLineup = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.play-selector-section {
-  padding: 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-.completion-section {
-  padding: 1rem;
-  border: 1px solid #4caf50;
-  border-radius: 8px;
-  background-color: #e8f5e8;
-  text-align: center;
-}
-
-.completion-section h3 {
-  color: #2e7d32;
-  margin-bottom: 0.5rem;
 }
 </style>

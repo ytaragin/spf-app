@@ -1,21 +1,25 @@
 <template>
-  <div class="play-selector">
-    <h3>Play Type</h3>
-    <div v-if="nextPlayType" class="next-play-type">
-      <span class="next-play-label">Next Play Type:</span>
-      <span class="next-play-value">{{ nextPlayType }}</span>
-    </div>
-    <div class="play-options">
-      <button
-        v-for="playType in playTypes"
-        :key="playType.value"
-        :class="{ active: selectedPlayType === playType.value }"
-        @click="selectPlayType(playType.value)"
+  <v-card variant="outlined" class="play-selector mb-3">
+    <v-card-title class="text-subtitle-1 py-2">Play Type</v-card-title>
+    <v-card-text>
+      <div v-if="nextPlayType" class="next-play-type mb-2">
+        <span class="text-caption text-medium-emphasis me-1">Next Play Type:</span>
+        <v-chip size="small" color="primary" variant="tonal">{{ nextPlayType }}</v-chip>
+      </div>
+      <v-btn-toggle
+        v-model="selectedPlayType"
+        color="primary"
+        variant="outlined"
+        divided
+        mandatory
+        @update:model-value="selectPlayType"
       >
-        {{ playType.label }}
-      </button>
-    </div>
-  </div>
+        <v-btn v-for="playType in playTypes" :key="playType.value" :value="playType.value">
+          {{ playType.label }}
+        </v-btn>
+      </v-btn-toggle>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -24,18 +28,9 @@ import { useGameStore } from '../stores/gameStore'
 
 defineOptions({ name: 'PlaySelector' })
 
-const emit = defineEmits(['update:playType'])
-
-const props = defineProps({
-  playType: {
-    type: String,
-    default: 'standard'
-  }
-})
-
 const gameStore = useGameStore()
 
-const selectedPlayType = ref(props.playType)
+const selectedPlayType = ref('standard')
 
 // Get nextPlayType from the game store
 const nextPlayType = computed(() => gameStore.getNextPlayType)
@@ -65,8 +60,8 @@ const playTypes = computed(() => {
 })
 
 const selectPlayType = (playType) => {
+  if (!playType) return
   selectedPlayType.value = playType
-  emit('update:playType', playType)
   // Make server call to set the play type
   gameStore.setPlayType(playType)
 }
@@ -78,7 +73,6 @@ const updateSelectedPlayType = () => {
     const singlePlayType = availablePlayTypes[0].value
     if (selectedPlayType.value !== singlePlayType) {
       selectedPlayType.value = singlePlayType
-      emit('update:playType', singlePlayType)
     }
   }
 }
@@ -95,52 +89,3 @@ watch(playTypes, () => {
   updateSelectedPlayType()
 })
 </script>
-
-<style scoped>
-.play-selector {
-  margin: 1rem 0;
-  padding: 0.5rem;
-  border: 1px solid #eee;
-  border-radius: 4px;
-}
-
-.next-play-type {
-  margin-bottom: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  background-color: #f0f8ff;
-  border: 1px solid #d0e7ff;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.next-play-label {
-  font-weight: bold;
-  color: #2c5282;
-  margin-right: 0.5rem;
-}
-
-.next-play-value {
-  color: #1a365d;
-  font-weight: 500;
-}
-
-.play-options {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.play-options button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f8f8f8;
-  cursor: pointer;
-}
-
-.play-options button.active {
-  background-color: #4caf50;
-  color: white;
-  border-color: #388e3c;
-}
-</style>

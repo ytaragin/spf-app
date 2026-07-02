@@ -1,19 +1,22 @@
 <template>
-  <div class="defense-play-selector">
-    <v-select
-      v-model="selectedPlay"
-      :items="playOptions"
-      item-title="title"
-      item-value="value"
-      label="Choose Defensive Play"
-      density="compact"
-    >
-    </v-select>
+  <v-card variant="outlined" class="defense-play-selector">
+    <v-card-title class="text-subtitle-1 py-2">Defensive Play</v-card-title>
+    <v-card-text>
+      <v-select
+        v-model="selectedPlay"
+        :items="playOptions"
+        item-title="title"
+        item-value="value"
+        label="Choose Defensive Play"
+        density="compact"
+      >
+      </v-select>
 
-    <v-select v-model="targetBox" :items="boxes" label="Target Box" density="compact"> </v-select>
+      <v-select v-model="targetBox" :items="boxes" label="Target Box" density="compact"> </v-select>
 
-    <v-btn @click="submitPlay">Submit Play</v-btn>
-  </div>
+      <v-btn color="primary" @click="submitPlay">Submit Play</v-btn>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -64,9 +67,3 @@ const submitPlay = () => {
   gamesStore.setDefensivePlay(req)
 }
 </script>
-
-<style>
-.defense-play-selector {
-  display: flex;
-}
-</style>

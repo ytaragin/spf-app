@@ -1,9 +1,21 @@
 <template>
-  <h1>{{ title }}</h1>
-  <h3>-{{ gameMsg }}</h3>
-  <div class="team-lineup">
-    <PlayerRow class="team-row" v-for="(row, index) in rowList" :key="index" :active="active" :boxes="row" />
-  </div>
+  <v-card variant="outlined" class="team-lineup-card mb-3">
+    <v-card-title class="d-flex align-center py-2">
+      <span class="text-subtitle-1 font-weight-medium">{{ title }}</span>
+      <span v-if="gameMsg" class="text-caption text-medium-emphasis ms-2">— {{ gameMsg }}</span>
+    </v-card-title>
+    <v-card-text>
+      <div class="team-lineup">
+        <PlayerRow
+          class="team-row"
+          v-for="(row, index) in rowList"
+          :key="index"
+          :active="active"
+          :boxes="row"
+        />
+      </div>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -21,7 +33,7 @@ const props = defineProps({
   }
 })
 
-const { gameMsg } = storeToRefs(useGameStore)
+const { gameMsg } = storeToRefs(useGameStore())
 
 const rowList = computed(() => {
   let a = props.rows

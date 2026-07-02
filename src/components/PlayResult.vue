@@ -1,84 +1,87 @@
 <template>
-  <div class="play-result" v-if="playResult">
-    <div class="play-result-header">
-      <h3>Play Result</h3>
+  <v-card v-if="playResult" variant="outlined" class="play-result mb-3">
+    <v-card-title class="d-flex align-center justify-space-between py-2">
+      <span class="text-subtitle-1">Play Result</span>
       <v-btn @click="refreshResult" size="small" variant="outlined">Refresh</v-btn>
-    </div>
-
-    <div class="result-summary">
-      <div class="result-type">
-        <strong>Result Type:</strong> {{ playResult.result.result_type }}
+    </v-card-title>
+    <v-card-text>
+      <div class="result-summary">
+        <div class="result-type">
+          <strong>Result Type:</strong> {{ playResult.result.result_type }}
+        </div>
+        <div class="result-value"><strong>Result:</strong> {{ playResult.result.result }} yards</div>
+        <div class="time-elapsed"><strong>Time:</strong> {{ playResult.result.time }} seconds</div>
       </div>
-      <div class="result-value"><strong>Result:</strong> {{ playResult.result.result }} yards</div>
-      <div class="time-elapsed"><strong>Time:</strong> {{ playResult.result.time }} seconds</div>
-    </div>
 
-    <div
-      class="play-details"
-      v-if="playResult.result.details && playResult.result.details.length > 0"
-    >
-      <h4>Play Details</h4>
-      <ul>
-        <li v-for="detail in playResult.result.details" :key="detail">
-          {{ detail }}
-        </li>
-      </ul>
-    </div>
-
-    <div class="game-state-update">
-      <h4>New Game State</h4>
-      <div class="state-grid">
-        <div class="state-item">
-          <strong>Score:</strong>
-          Home {{ playResult.new_state.home_score }} - {{ playResult.new_state.away_score }} Away
-        </div>
-        <div class="state-item"><strong>Quarter:</strong> {{ playResult.new_state.quarter }}</div>
-        <div class="state-item">
-          <strong>Time Remaining:</strong> {{ formatTime(playResult.new_state.time_remaining) }}
-        </div>
-        <div class="state-item">
-          <strong>Possession:</strong> {{ playResult.new_state.possession }}
-        </div>
-        <div class="state-item"><strong>Down:</strong> {{ playResult.new_state.down }}</div>
-        <div class="state-item">
-          <strong>Yard Line:</strong> {{ playResult.new_state.yard_line }}
-        </div>
-        <div class="state-item">
-          <strong>First Down Target:</strong> {{ playResult.new_state.first_down_target }}
-        </div>
-        <div class="state-item">
-          <strong>Status:</strong> {{ playResult.new_state.last_status }}
-        </div>
+      <div
+        class="play-details"
+        v-if="playResult.result.details && playResult.result.details.length > 0"
+      >
+        <h4 class="text-subtitle-2 mb-1">Play Details</h4>
+        <ul>
+          <li v-for="detail in playResult.result.details" :key="detail">
+            {{ detail }}
+          </li>
+        </ul>
       </div>
-    </div>
 
-    <div class="mechanics" v-if="showMechanics && playResult.result.mechanic">
-      <h4>Game Mechanics</h4>
-      <div class="mechanic-details">
-        <div v-for="mechanic in playResult.result.mechanic" :key="mechanic" class="mechanic-item">
-          {{ mechanic }}
+      <div class="game-state-update">
+        <h4 class="text-subtitle-2 mb-1">New Game State</h4>
+        <div class="state-grid">
+          <div class="state-item">
+            <strong>Score:</strong>
+            Home {{ playResult.new_state.home_score }} - {{ playResult.new_state.away_score }} Away
+          </div>
+          <div class="state-item"><strong>Quarter:</strong> {{ playResult.new_state.quarter }}</div>
+          <div class="state-item">
+            <strong>Time Remaining:</strong> {{ formatTime(playResult.new_state.time_remaining) }}
+          </div>
+          <div class="state-item">
+            <strong>Possession:</strong> {{ playResult.new_state.possession }}
+          </div>
+          <div class="state-item"><strong>Down:</strong> {{ playResult.new_state.down }}</div>
+          <div class="state-item">
+            <strong>Yard Line:</strong> {{ playResult.new_state.yard_line }}
+          </div>
+          <div class="state-item">
+            <strong>First Down Target:</strong> {{ playResult.new_state.first_down_target }}
+          </div>
+          <div class="state-item">
+            <strong>Status:</strong> {{ playResult.new_state.last_status }}
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="cards-info" v-if="playResult.result.cards">
-      <h4>Cards Information</h4>
-      <div class="cards-details">
-        <div>
-          <strong>Cards Flipped:</strong> {{ playResult.result.cards.cards_flipped.join(', ') }}
+      <div class="mechanics" v-if="showMechanics && playResult.result.mechanic">
+        <h4 class="text-subtitle-2 mb-1">Game Mechanics</h4>
+        <div class="mechanic-details">
+          <div v-for="mechanic in playResult.result.mechanic" :key="mechanic" class="mechanic-item">
+            {{ mechanic }}
+          </div>
         </div>
-        <div><strong>Had Z:</strong> {{ playResult.result.cards.had_z ? 'Yes' : 'No' }}</div>
       </div>
-    </div>
 
-    <v-btn @click="toggleMechanics" size="small" variant="text">
-      {{ showMechanics ? 'Hide' : 'Show' }} Game Mechanics
-    </v-btn>
-  </div>
-  <div v-else class="no-result">
-    <p>No play result available</p>
-    <v-btn @click="refreshResult" variant="outlined">Fetch Result</v-btn>
-  </div>
+      <div class="cards-info" v-if="playResult.result.cards">
+        <h4 class="text-subtitle-2 mb-1">Cards Information</h4>
+        <div class="cards-details">
+          <div>
+            <strong>Cards Flipped:</strong> {{ playResult.result.cards.cards_flipped.join(', ') }}
+          </div>
+          <div><strong>Had Z:</strong> {{ playResult.result.cards.had_z ? 'Yes' : 'No' }}</div>
+        </div>
+      </div>
+
+      <v-btn @click="toggleMechanics" size="small" variant="text">
+        {{ showMechanics ? 'Hide' : 'Show' }} Game Mechanics
+      </v-btn>
+    </v-card-text>
+  </v-card>
+  <v-card v-else variant="outlined" class="no-result mb-3">
+    <v-card-text class="text-center py-8">
+      <p class="text-medium-emphasis mb-3">No play result available</p>
+      <v-btn @click="refreshResult" variant="outlined">Fetch Result</v-btn>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -110,52 +113,27 @@ const refreshResult = async () => {
 </script>
 
 <style scoped>
-.play-result {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
-  margin: 1rem 0;
-  background-color: #f9f9f9;
-}
-
-.play-result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.play-result-header h3 {
-  margin: 0;
-  color: #333;
-}
-
 .result-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding: 0.5rem;
-  background-color: #fff;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
   border-radius: 4px;
 }
 
 .result-type {
-  color: #2196f3;
+  color: rgb(var(--v-theme-primary));
 }
 
 .result-value {
-  color: #4caf50;
+  color: rgb(var(--v-theme-success));
   font-weight: bold;
 }
 
 .play-details {
   margin: 1rem 0;
-}
-
-.play-details h4 {
-  margin-bottom: 0.5rem;
-  color: #333;
 }
 
 .play-details ul {
@@ -171,17 +149,12 @@ const refreshResult = async () => {
   margin: 1rem 0;
 }
 
-.game-state-update h4 {
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
 .state-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 0.5rem;
   padding: 0.5rem;
-  background-color: #fff;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
   border-radius: 4px;
 }
 
@@ -192,13 +165,8 @@ const refreshResult = async () => {
 .mechanics {
   margin: 1rem 0;
   padding: 0.5rem;
-  background-color: #fff;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
   border-radius: 4px;
-}
-
-.mechanics h4 {
-  margin-bottom: 0.5rem;
-  color: #333;
 }
 
 .mechanic-details {
@@ -208,7 +176,7 @@ const refreshResult = async () => {
 
 .mechanic-item {
   padding: 0.125rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .mechanic-item:last-child {
@@ -218,22 +186,11 @@ const refreshResult = async () => {
 .cards-info {
   margin: 1rem 0;
   padding: 0.5rem;
-  background-color: #fff;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
   border-radius: 4px;
-}
-
-.cards-info h4 {
-  margin-bottom: 0.5rem;
-  color: #333;
 }
 
 .cards-details div {
   margin-bottom: 0.25rem;
-}
-
-.no-result {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
 }
 </style>

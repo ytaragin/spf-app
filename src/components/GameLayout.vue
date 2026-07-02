@@ -1,36 +1,47 @@
 <template>
   <div class="game-layout">
-    <div class="team-management-section">
-      <v-btn @click="toggleTeam">Switch Managed Team</v-btn>
-      <div class="current-team-display">
-        Managing: <span class="team-highlight">{{ managedTeam }} - {{ managedTeamName }}</span>
-      </div>
-      <div class="current-side-display">
-        On: <span class="side-highlight">{{ currentSide }}</span>
-      </div>
-    </div>
-    <div class="teams-display">Home: {{ homeTeamName }} | Away: {{ awayTeamName }}</div>
+    <h1 class="text-h5 mb-3">Game</h1>
 
-    <GameStatus />
+    <v-card variant="tonal" class="mb-3">
+      <v-card-text class="d-flex align-center flex-wrap ga-3">
+        <v-btn @click="toggleTeam">Switch Managed Team</v-btn>
+        <div class="current-team-display">
+          Managing: <span class="team-highlight">{{ managedTeam }} - {{ managedTeamName }}</span>
+        </div>
+        <div class="current-side-display">
+          On: <span class="side-highlight">{{ currentSide }}</span>
+        </div>
+        <v-spacer />
+        <div class="teams-display">Home: {{ homeTeamName }} | Away: {{ awayTeamName }}</div>
+      </v-card-text>
+      <v-card-actions class="flex-wrap">
+        <v-btn size="small" variant="text" @click="getOtherTeamLineup()">
+          Get Other Team Lineup
+        </v-btn>
+        <v-btn size="small" variant="text" @click="fetchGame(false)">Get Game Status</v-btn>
+        <v-btn size="small" variant="text" @click="fetchGame(true)">Full Sync</v-btn>
+      </v-card-actions>
+    </v-card>
 
-    <v-btn @click="getOtherTeamLineup()">Get Other Team Lineup</v-btn>
-    <v-btn @click="fetchGame(false)">Get Game Status</v-btn>
-    <v-btn @click="fetchGame(true)">Full Sync</v-btn>
-
-    <PlayTypeSelector :playType="currentPlayType" @update:playType="updatePlayType" />
-
-    <PlayLineup :offenseActive="offenseActive" />
-
-    <v-btn @click="runPlay" color="success" variant="elevated">Run Play</v-btn>
-
-    <PlayResult />
-
-    <PlayHistory />
+    <v-row>
+      <v-col cols="12" md="6">
+        <GameStatus />
+        <PlayHistory />
+      </v-col>
+      <v-col cols="12" md="6">
+        <PlayTypeSelector />
+        <PlayLineup :offenseActive="offenseActive" />
+        <v-btn @click="runPlay" color="success" variant="elevated" block class="my-3">
+          Run Play
+        </v-btn>
+        <PlayResult />
+      </v-col>
+    </v-row>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { useTeamsStore } from '@/stores/teamStore'
 import { storeToRefs } from 'pinia'
@@ -50,11 +61,6 @@ const fetchGame = async (fullSync) => {
   await gamesStore.fetchGameData(fullSync)
 }
 
-const currentPlayType = ref('standard')
-
-const updatePlayType = (playType) => {
-  currentPlayType.value = playType.toLowerCase()
-}
 const homeTeamName = computed(() => teamsStore.homeTeam)
 const awayTeamName = computed(() => teamsStore.awayTeam)
 const managedTeamName = computed(() => {
@@ -95,44 +101,20 @@ const runPlay = async () => {
   max-width: 1600px; /* give the app room to breathe on large screens */
 }
 
-.game-layout .v-btn {
-  margin: 0.25rem;
-}
-
-.game-layout > div {
-  margin: 0.5rem 0;
-}
-
 @media (min-width: 1400px) {
   .game-layout {
     max-width: 1800px;
   }
 }
 
-.current-side {
-  font-size: 0.85em;
-  font-weight: normal;
-  margin-left: 0.5rem;
-  color: #666;
-}
-
-.team-management-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 0.5rem 0;
-}
-
 .current-side-display {
   font-size: 1.1em;
   font-weight: 500;
-  color: #333;
 }
 
 .current-team-display {
   font-size: 1.1em;
   font-weight: 500;
-  color: #333;
 }
 
 .side-highlight {
@@ -140,9 +122,9 @@ const runPlay = async () => {
   font-size: 1.2em;
   padding: 0.3rem 0.8rem;
   border-radius: 6px;
-  background-color: #e3f2fd;
-  color: #1976d2;
-  border: 2px solid #1976d2;
+  background-color: rgba(var(--v-theme-primary), 0.12);
+  color: rgb(var(--v-theme-primary));
+  border: 2px solid rgb(var(--v-theme-primary));
 }
 
 .team-highlight {
@@ -150,15 +132,13 @@ const runPlay = async () => {
   font-size: 1.2em;
   padding: 0.3rem 0.8rem;
   border-radius: 6px;
-  background-color: #f3e5f5;
-  color: #7b1fa2;
-  border: 2px solid #7b1fa2;
+  background-color: rgba(var(--v-theme-secondary), 0.12);
+  color: rgb(var(--v-theme-secondary));
+  border: 2px solid rgb(var(--v-theme-secondary));
 }
 
 .teams-display {
   font-size: 0.9em;
-  color: #555;
-  margin: 0.25rem 0;
-  padding-left: 0.5rem;
+  opacity: 0.75;
 }
 </style>
