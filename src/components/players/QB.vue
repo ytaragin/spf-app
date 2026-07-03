@@ -33,15 +33,6 @@ import RangedStat from './RangedStat.vue'
 import SingleStat from './SingleStat.vue'
 import NumberedStat from './NumberedStat.vue'
 
-import { ref } from 'vue'
-
-const stats = {
-  Complete: '31-42',
-  Incomplete: '43-48',
-  Runs: '13-30',
-  Sack: '1-12'
-}
-
 const rushLabels = [
   { key: 'Sack', value: 'Sack', order: 1 },
   { key: 'Runs', value: 'Runs', order: 2 },
@@ -53,11 +44,6 @@ const passLabels = [
   { key: 'Complete', value: 'Com', order: 1 },
   { key: 'Incomplete', value: 'Inc', order: 2 },
   { key: 'Interception', value: 'Int', order: 3 }
-]
-const orderedMap = [
-  { key: 'Complete', value: 'Com', order: 1 },
-  { key: 'Runs', value: undefined, order: 2 },
-  { key: 'Sack', value: undefined, order: 3 }
 ]
 
 defineProps({

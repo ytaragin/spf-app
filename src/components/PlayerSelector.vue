@@ -22,7 +22,6 @@
 // v-if='playerName!= "-"'
 import { computed, ref } from 'vue'
 import { useTeamsStore } from '@/stores/teamStore' // Adjust the path as needed
-import { storeToRefs } from 'pinia'
 
 const props = defineProps({
   boxName: String,
@@ -30,28 +29,13 @@ const props = defineProps({
 })
 
 const teamStore = useTeamsStore()
-const { availablePlayerIDs, getPlayersForBox } = storeToRefs(teamStore)
 
 const selectedPlayerId = ref('')
-
-const updateCounter = () => {
-  teamStore.updateVersion()
-}
-
-const versionCounter = computed(() => teamStore.version)
 
 const availablePlayersForPos = computed(() => {
   return teamStore.getPlayersForBox(props.boxName).map((id) => {
     return { id, name: getPlayerRecord(id).name }
   })
-})
-
-const playerName = computed(() => {
-  const player = getPlayerRecord(props.boxName)
-  if (player) {
-    return player.name
-  }
-  return '-'
 })
 
 const selectPlayer = () => {

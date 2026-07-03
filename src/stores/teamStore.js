@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import axios from 'axios'
 import { SPFMetadata } from '../game/SPFMetadata.js'
-import { useGameStore } from './gameStore.js'
 import { TeamData } from '../game/TeamData.js'
 
 export const useTeamsStore = defineStore('teams', () => {

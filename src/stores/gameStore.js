@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref, reactive } from 'vue'
+import { computed, ref } from 'vue'
 import axios from 'axios'
 import { SPFMetadata } from '../game/SPFMetadata.js'
 
@@ -273,7 +273,7 @@ export const useGameStore = defineStore('game', () => {
         playResults.value.push(newPlay)
 
         // Update the current game state with the new state from the play result
-        updateGameStateFromPlayResult(newPlay, 'new play result')
+        updateGameStateFromPlayResult(newPlay)
       }
     }
   }
@@ -287,7 +287,7 @@ export const useGameStore = defineStore('game', () => {
     // Update the current game state with the most recent play result's new_state
     if (playResults.value.length > 0) {
       const mostRecentPlay = playResults.value[playResults.value.length - 1]
-      updateGameStateFromPlayResult(mostRecentPlay, 'most recent play from all results')
+      updateGameStateFromPlayResult(mostRecentPlay)
     }
   }
 
@@ -338,7 +338,7 @@ export const useGameStore = defineStore('game', () => {
   })
 
   // Shared function to update game state from play result
-  function updateGameStateFromPlayResult(playResult, source = 'play result') {
+  function updateGameStateFromPlayResult(playResult) {
     if (playResult && playResult.new_state) {
       gameState.value = { ...playResult.new_state }
       return true

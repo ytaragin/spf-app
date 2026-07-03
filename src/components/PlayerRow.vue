@@ -1,6 +1,6 @@
 <template>
   <div class="player-row">
-    <SpotComponent v-for="box in boxes" :boxName="box" :active="active"> </SpotComponent>
+    <SpotComponent v-for="box in boxes" :key="box" :boxName="box" :active="active"> </SpotComponent>
   </div>
 </template>
 

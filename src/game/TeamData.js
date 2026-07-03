@@ -8,7 +8,7 @@ export class TeamData {
 
   getPlayerByID = (id) => {
     // console.log(this.players)
-    if (this.players.hasOwnProperty(id)) {
+    if (Object.prototype.hasOwnProperty.call(this.players, id)) {
       return this.players[id]
     }
     return null

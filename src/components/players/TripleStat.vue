@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-const props = defineProps({
+defineProps({
   title: String,
   stats: Array,
   labels: Array
@@ -48,16 +48,6 @@ function getValue(input) {
   else {
     return '-'
   }
-}
-
-const formatStat = (stat) => {
-  if (stat == 'Sg') {
-    return stat
-  }
-  if (stat.Val == 0) {
-    return stat
-  }
-  return stat?.Val || '-'
 }
 
 const formatStats = (labels, stats) => {

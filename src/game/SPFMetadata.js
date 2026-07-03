@@ -122,7 +122,7 @@ export class SPFMetadata {
           description: 'Running, Sweep Right [IR]',
           boxes: ['b1', 'b2', 'b3']
         },
-        InsideLeft: {
+        SweepLeft: {
           code: 'IL',
           description: 'Running, Sweep Left [IL]',
           boxes: ['b1', 'b2', 'b3']
@@ -186,7 +186,7 @@ export class SPFMetadata {
   }
 
   getBoxLabel(box) {
-    if (this.metadata.labels.hasOwnProperty(box)) {
+    if (Object.prototype.hasOwnProperty.call(this.metadata.labels, box)) {
       return this.metadata.labels[box]
     }
     return box

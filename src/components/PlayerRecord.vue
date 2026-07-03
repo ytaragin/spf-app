@@ -85,14 +85,6 @@ watch(
   },
   { immediate: true }
 )
-
-const playerPosition = computed(() => {
-  const player = getPlayerRecord(props.boxName)
-  if (player) {
-    return player.pos
-  }
-  return 'Plain'
-})
 </script>
 
 <style>
