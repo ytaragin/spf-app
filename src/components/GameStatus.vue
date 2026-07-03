@@ -1,81 +1,62 @@
 <template>
-  <div class="game-status">
-    <v-btn
-      v-if="!showRawData"
-      class="raw-data-toggle"
-      icon="mdi-code-json"
-      size="small"
-      variant="tonal"
-      color="grey-darken-1"
-      title="Show raw data"
-      @click="showRawData = true"
-    ></v-btn>
+  <div class="game-status d-flex align-center ga-2">
+    <!-- Compact scoreboard -->
+    <div class="d-flex align-center ga-1">
+      <span class="text-body-2 font-weight-medium d-none d-md-inline">{{ homeTeam }}</span>
+      <span class="text-h6 font-weight-bold">{{ gameState.home_score }}</span>
+      <span class="text-disabled">-</span>
+      <span class="text-h6 font-weight-bold">{{ gameState.away_score }}</span>
+      <span class="text-body-2 font-weight-medium d-none d-md-inline">{{ awayTeam }}</span>
+    </div>
 
-    <v-navigation-drawer
-      v-model="showRawData"
-      location="right"
-      temporary
-      width="360"
+    <v-divider vertical class="mx-1" />
+
+    <!-- Clock / quarter -->
+    <v-chip size="small" variant="flat" color="surface">Q{{ gameState.quarter }}</v-chip>
+    <v-chip size="small" variant="flat" color="surface">{{ formattedTimeRemaining }}</v-chip>
+
+    <v-divider vertical class="mx-1 d-none d-sm-flex" />
+
+    <!-- Down & distance + ball position -->
+    <v-chip size="small" variant="flat" color="surface" class="d-none d-sm-flex">
+      {{ gameState.down }} &amp; {{ yardsToGo }}
+    </v-chip>
+    <v-chip
+      size="small"
+      variant="outlined"
+      class="d-none d-lg-flex"
+      :title="`${possessionTeam} ball at the ${gameState.yard_line}`"
     >
-      <div class="raw-data-panel">
+      {{ possessionTeam }} @ {{ gameState.yard_line }}
+    </v-chip>
+
+    <!-- Raw data popover -->
+    <v-menu :close-on-content-click="false" location="bottom end">
+      <template #activator="{ props }">
+        <v-btn
+          v-bind="props"
+          icon="mdi-code-json"
+          size="small"
+          variant="text"
+          title="Show raw data"
+        ></v-btn>
+      </template>
+      <v-card width="360" max-height="70vh" class="raw-data-card">
         <div class="raw-data-header">
-          <h2>Raw Game Status</h2>
-          <v-btn
-            icon="mdi-close"
-            size="x-small"
-            variant="text"
-            @click="showRawData = false"
-          ></v-btn>
+          <span class="text-subtitle-2">Raw Game Status</span>
         </div>
         <pre class="raw-data-content">{{ rawGameState }}</pre>
-      </div>
-    </v-navigation-drawer>
-
-    <v-card variant="outlined" class="scoreboard-card mb-3">
-      <v-card-text>
-        <v-row align="center" justify="space-between" class="mb-2">
-          <v-col cols="12" sm="6">
-            <div class="d-flex align-center ga-2 flex-wrap">
-              <v-chip color="primary" variant="tonal" size="small">Q{{ gameState.quarter }}</v-chip>
-              <v-chip variant="tonal" size="small">{{ formattedTimeRemaining }}</v-chip>
-              <v-chip variant="tonal" size="small">{{ gameState.down }} & {{ yardsToGo }}</v-chip>
-            </div>
-          </v-col>
-          <v-col cols="12" sm="6" class="text-sm-right">
-            <span class="text-body-2">
-              {{ possessionTeam }} ball at {{ gameState.yard_line }}
-            </span>
-          </v-col>
-        </v-row>
-
-        <v-row align="center" justify="space-between" class="text-h6">
-          <v-col cols="6">Home ({{ homeTeam }}): {{ gameState.home_score }}</v-col>
-          <v-col cols="6" class="text-right">Away ({{ awayTeam }}): {{ gameState.away_score }}</v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-
-    <v-card variant="outlined" class="field-card mb-3">
-      <v-card-text>
-        <FootballField
-          :ballPosition="gameState.yard_line"
-          :firstDownTarget="gameState.first_down_target"
-        />
-      </v-card-text>
-    </v-card>
+      </v-card>
+    </v-menu>
   </div>
 </template>
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { useTeamsStore } from '../stores/teamStore'
-import FootballField from './FootballField.vue'
 
 const gameStore = useGameStore()
 const teamsStore = useTeamsStore()
-
-// Toggle for showing the raw game state data panel
-const showRawData = ref(false)
 
 // Use store properties with proper reactivity
 const gameState = computed(() => gameStore.gameState)
@@ -109,34 +90,20 @@ const possessionTeam = computed(() => {
 })
 </script>
 
-<style>
+<style scoped>
 .game-status {
-  position: relative;
+  min-width: 0;
 }
 
-.raw-data-toggle {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 5;
-  color: rgba(0, 0, 0, 0.6);
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.raw-data-panel {
-  padding: 16px;
+.raw-data-card {
+  overflow-y: auto;
 }
 
 .raw-data-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.raw-data-header h2 {
-  margin: 0;
-  font-size: 1.1rem;
+  padding: 12px 16px 0;
 }
 
 .raw-data-content {
@@ -144,8 +111,9 @@ const possessionTeam = computed(() => {
   font-size: 0.85rem;
   white-space: pre-wrap;
   word-break: break-word;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(var(--v-theme-on-surface), 0.05);
   padding: 12px;
+  margin: 12px 16px 16px;
   border-radius: 4px;
   overflow-x: auto;
 }

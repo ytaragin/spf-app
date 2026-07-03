@@ -81,8 +81,8 @@ const submitPlay = () => {
 }
 
 .kickoff-radio-wrapper {
-  background-color: var(--color-background-soft);
-  border: 2px solid var(--color-border);
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
+  border: 2px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 8px;
   padding: 1rem;
   transition: all 0.3s ease;
@@ -92,35 +92,35 @@ const submitPlay = () => {
 }
 
 .kickoff-radio-wrapper:hover {
-  border-color: var(--color-border-hover);
-  background-color: var(--color-background-mute);
+  border-color: rgba(var(--v-theme-on-surface), 0.24);
+  background-color: rgba(var(--v-theme-on-surface), 0.08);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Clear visual indication for selected state */
+/* Clear visual indication for selected state (Normal Kick = success) */
 .kickoff-radio-wrapper.selected {
-  background-color: rgba(76, 175, 80, 0.15) !important;
-  border-color: #4caf50 !important;
+  background-color: rgba(var(--v-theme-success), 0.15);
+  border-color: rgb(var(--v-theme-success));
   border-width: 3px;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 0 0 2px rgba(var(--v-theme-success), 0.3);
   transform: scale(1.02);
 }
 
 .kickoff-radio-wrapper.selected :deep(.v-label) {
-  color: #4caf50 !important;
+  color: rgb(var(--v-theme-success));
   font-weight: 700;
 }
 
-/* Specific styling for warning color (Onside Kick) when selected */
+/* Onside Kick = warning when selected */
 .kickoff-radio-wrapper:last-child.selected {
-  background-color: rgba(255, 152, 0, 0.15) !important;
-  border-color: #ff9800 !important;
-  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+  background-color: rgba(var(--v-theme-warning), 0.15);
+  border-color: rgb(var(--v-theme-warning));
+  box-shadow: 0 0 0 2px rgba(var(--v-theme-warning), 0.3);
 }
 
 .kickoff-radio-wrapper:last-child.selected :deep(.v-label) {
-  color: #ff9800 !important;
+  color: rgb(var(--v-theme-warning));
 }
 
 .kickoff-radio {

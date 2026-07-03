@@ -1,11 +1,10 @@
 @import './base.css';
 
 #app {
-  /* Allow the application to span the full viewport width */
+  /* Allow the application to span the full viewport width.
+     Layout spacing is handled by Vuetify (v-app / v-main / v-container). */
   width: 100%;
   margin: 0 auto;
-  /* keep horizontal centering of inner max-width containers */
-  padding: 1.5rem 2rem;
   font-weight: normal;
 }
 
@@ -19,20 +18,6 @@ a,
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-/* Remove previous large-screen grid that constrained layout; provide optional wider centered content */
-@media (min-width: 1024px) {
-  body {
-    /* Use normal document flow; if vertical centering desired later we can revisit */
-    display: block;
-  }
-
-  #app {
-    /* For very wide screens, cap extreme line lengths while still using more space */
-    max-width: 95vw;
-    /* nearly full width */
   }
 }
 

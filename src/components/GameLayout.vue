@@ -1,7 +1,5 @@
 <template>
   <div class="game-layout">
-    <h1 class="text-h5 mb-3">Game</h1>
-
     <v-card variant="tonal" class="mb-3">
       <v-card-text class="d-flex align-center flex-wrap ga-3">
         <v-btn @click="toggleTeam">Switch Managed Team</v-btn>
@@ -13,19 +11,37 @@
         </div>
         <v-spacer />
         <div class="teams-display">Home: {{ homeTeamName }} | Away: {{ awayTeamName }}</div>
+
+        <v-menu v-if="isDev" location="bottom end">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon="mdi-wrench"
+              size="small"
+              variant="text"
+              title="Developer tools"
+            ></v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-subheader>Developer Tools</v-list-subheader>
+            <v-list-item title="Get Other Team Lineup" @click="getOtherTeamLineup()" />
+            <v-list-item title="Get Game Status" @click="fetchGame(false)" />
+            <v-list-item title="Full Sync" @click="fetchGame(true)" />
+          </v-list>
+        </v-menu>
       </v-card-text>
-      <v-card-actions class="flex-wrap">
-        <v-btn size="small" variant="text" @click="getOtherTeamLineup()">
-          Get Other Team Lineup
-        </v-btn>
-        <v-btn size="small" variant="text" @click="fetchGame(false)">Get Game Status</v-btn>
-        <v-btn size="small" variant="text" @click="fetchGame(true)">Full Sync</v-btn>
-      </v-card-actions>
     </v-card>
 
     <v-row>
       <v-col cols="12" md="6">
-        <GameStatus />
+        <v-card variant="outlined" class="field-card mb-3">
+          <v-card-text>
+            <FootballField
+              :ballPosition="gameState.yard_line"
+              :firstDownTarget="gameState.first_down_target"
+            />
+          </v-card-text>
+        </v-card>
         <PlayHistory />
       </v-col>
       <v-col cols="12" md="6">
@@ -46,7 +62,7 @@ import { useGameStore } from '@/stores/gameStore'
 import { useTeamsStore } from '@/stores/teamStore'
 import { storeToRefs } from 'pinia'
 
-import GameStatus from './GameStatus.vue'
+import FootballField from './FootballField.vue'
 import PlayTypeSelector from './PlayTypeSelector.vue'
 import PlayLineup from './PlayLineup.vue'
 import PlayResult from './PlayResult.vue'
@@ -56,6 +72,9 @@ const { gameState } = storeToRefs(useGameStore())
 const teamsStore = useTeamsStore()
 const { managedTeam } = storeToRefs(teamsStore)
 const gamesStore = useGameStore()
+
+// Expose developer-only tooling when running in dev builds
+const isDev = import.meta.env.DEV
 
 const fetchGame = async (fullSync) => {
   await gamesStore.fetchGameData(fullSync)

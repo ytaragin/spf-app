@@ -36,17 +36,38 @@ Known bugs found during analysis (fold into phases):
 Goal: establish a single source of truth for theming and app structure. Everything else
 builds on this.
 
-- [ ] Define a Vuetify `theme` in `src/main.js` with `light` + `dark` themes.
-- [ ] Add named color tokens: `primary`, `secondary`, `surface`, plus custom `offense`,
+- [x] Define a Vuetify `theme` in `src/main.js` with `light` + `dark` themes.
+- [x] Add named color tokens: `primary`, `secondary`, `surface`, plus custom `offense`,
       `defense`, `home`, `away`, `firstDown`.
-- [ ] Remove reliance on `base.css` `--color-*` vars and the native
+- [x] Remove reliance on `base.css` `--color-*` vars and the native
       `@media (prefers-color-scheme: dark)` block (`src/assets/base.css`).
-- [ ] Repoint `KickoffPlaySelector.vue` off `var(--color-*)` onto theme tokens; drop its
+- [x] Repoint `KickoffPlaySelector.vue` off `var(--color-*)` onto theme tokens; drop its
       `!important` / `:deep()` overrides.
-- [ ] Add app shell: `v-app-bar` (title + live scoreboard + clock) in `src/App.vue`.
-- [ ] Wrap content in `v-main` + `v-container` (`src/App.vue` / `GameLayout.vue`).
-- [ ] Move dev actions ("Get Other Team Lineup", "Get Game Status", "Full Sync", raw JSON)
+- [x] Add app shell: `v-app-bar` (title + live scoreboard + clock) in `src/App.vue`.
+- [x] Wrap content in `v-main` + `v-container` (`src/App.vue` / `GameLayout.vue`).
+- [x] Move dev actions ("Get Other Team Lineup", "Get Game Status", "Full Sync", raw JSON)
       into a dev-only `v-menu`/`v-navigation-drawer` behind a flag (`GameLayout.vue`).
+
+> Phase 0 completed. Notes:
+> - Theme lives in `src/main.js` (`light` + `dark`, with a light-mode `background`/`surface`
+>   split and MD-style semantic colors). A theme toggle (`useTheme()`) sits in the app bar.
+> - App shell (`v-app-bar` + live scoreboard/clock + `v-main` + `v-container`) was placed in
+>   `src/views/GameView.vue` rather than `App.vue`, because the scoreboard is game-specific
+>   and `App.vue` hosts multiple routes (LandingPage renders its own full-screen layout).
+> - The `<h1>Game</h1>` added in Phase 1 was removed; the app-bar title now serves that role.
+> - `base.css` no longer defines `--color-*`/dark media query; `body` uses `--v-theme-*`.
+>   Leftover `WelcomeItem.vue` still references old `--color-*` vars but is dead code
+>   (not rendered) — cleanup is tracked in Phase 3.
+> - Dev actions ("raw JSON" toggle lives in `GameStatus.vue`; the other three moved to a
+>   `v-menu` gated by `import.meta.env.DEV`).
+>
+> Follow-up (post-Phase 0): the standalone scoreboard `v-card` in `GameStatus.vue`
+> duplicated the app-bar scoreboard. `GameStatus.vue` was refactored into a **compact
+> horizontal status bar** (teams/score, quarter, clock, down &amp; distance, ball position,
+> raw-data toggle) and **embedded directly in the app bar** (`GameView.vue`), replacing the
+> inline scoreboard markup. The `FootballField` card moved into `GameLayout.vue`'s left
+> column, and `<GameStatus />` was removed from the page body. Chips use `d-none d-sm-flex`
+> / `d-md-inline` / `d-lg-flex` to progressively hide lower-priority info on narrow screens.
 
 ## Phase 1 — Consistency & Structure (P1)
 
