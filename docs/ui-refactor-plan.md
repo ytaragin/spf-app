@@ -96,21 +96,52 @@ Goal: unify on Vuetify components and give the page a scannable, grouped layout.
 
 ## Phase 2 — Gameplay UX (P2)
 
-Goal: guide the manager through the play sequence and give real feedback.
+Goal: guide the manager through the play sequence and give real feedback. Ordered so the
+error/async foundation lands first; everything else plugs into it.
 
-- [ ] Introduce a `v-stepper` for the flow: Play Type -> Set Lineup -> Call Play -> Run Play
-      (`GameLayout.vue`).
-- [ ] Move `lineupSubmitted` / flow state into the store so it survives and steps gate
-      correctly (`stores/gameStore`, `PlayLineup.vue`).
-- [ ] Add `:loading` to async buttons: Run Play, Submit Lineup, Submit Play
-      (`GameLayout.vue`, `PlayLineup.vue`, `PlaySelectors/*`).
-- [ ] Add `v-skeleton-loader` placeholders while fetching game data.
-- [ ] Add global `v-snackbar` + `v-alert` for errors; replace `console.warn` in
-      `KickoffPlaySelector.vue` `setKickoffPlay` fallback.
-- [ ] Redesign the play-result moment: `v-card` + colored `v-alert`/`v-chip` keyed on
-      `result_type` (gain=success, turnover=error), `v-expand-transition`, prominent yardage
-      (`PlayResult.vue`).
-- [ ] Consider `v-timeline` for `PlayHistory.vue` to read like a drive log.
+Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> **Guidance**
+(flow) -> **Optional**.
+
+### Foundation — store async/error state
+
+- [ ] Add a store-level `error` ref (or small notifications concept) and per-action loading
+      flags (e.g., `isRunningPlay`, `isSubmittingLineup`, `isSubmittingPlay`) to
+      `stores/gameStore`. Today every method swallows failures into `gameMsg` + `console.error`
+      and there is **no loading state at all** — this is the precondition for the tasks below.
+
+### Feedback — surface it to the user
+
+- [ ] Add a global `v-snackbar` (+ inline `v-alert` where appropriate) that reads the store
+      `error`. Route existing `console.error` (store `catch` blocks) and the `console.warn`
+      fallback in `KickoffPlaySelector.vue` `submitPlay` through it. Note: `setKickoffPlay`
+      already exists, so that fallback branch is effectively dead — real errors need to surface
+      from the store `catch` blocks.
+- [ ] Wire `:loading` on the async buttons using the flags above: Run Play (`GameLayout.vue`),
+      Submit Lineup (`PlayLineup.vue`), Submit Play (`PlaySelectors/*`).
+- [ ] Redesign the play-result moment: colored `v-alert`/`v-chip` keyed on
+      `playResult.result.result_type` (gain=success, turnover=error), `v-expand-transition`,
+      prominent `playResult.result.result` yardage (`PlayResult.vue`).
+
+### Guidance — make the play sequence legible
+
+- [ ] Move `lineupSubmitted` out of `PlayLineup.vue` (local `ref`) into the store as flow
+      state, **and reset it in `runPlay()`** — it is currently never reset, so the "Select
+      Play" card stays open across plays (`stores/gameStore`, `PlayLineup.vue`).
+- [ ] Use that flow state to gate/highlight the play-flow sections in the existing two-column
+      layout (e.g., disable "Run Play" until lineup submitted, emphasize the active section).
+      Lightweight guidance that respects the current grid.
+
+### Optional / deferred
+
+- [ ] (Optional) `v-timeline` for `PlayHistory.vue` to read like a drive log (data available
+      via `getAllPlayResults`).
+- [-] `v-stepper` for Play Type -> Set Lineup -> Call Play -> Run Play: demoted. It fights the
+      two-column layout established in Phase 0/1 and re-opens the parked layout decision, and
+      the flow is not strictly linear (defense has no equivalent "Call Play"; kickoff is
+      conditional). The store-driven section gating above delivers the same guidance goal.
+- [-] `v-skeleton-loader` while fetching: deferred. State is seeded with defaults and there is
+      no clear "empty then load" gap in the game view for skeletons to fill. Revisit if a real
+      initial-load gap surfaces.
 
 ## Phase 3 — Polish & Responsiveness (P3)
 

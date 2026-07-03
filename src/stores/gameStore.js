@@ -26,6 +26,16 @@ export const useGameStore = defineStore('game', () => {
   const nextPlayType = ref(null)
   const playResults = ref([])
 
+  // Async feedback state (surfaced to the UI via snackbar/:loading)
+  const error = ref(null)
+  const isRunningPlay = ref(false)
+  const isSubmittingLineup = ref(false)
+  const isSubmittingPlay = ref(false)
+
+  function clearError() {
+    error.value = null
+  }
+
   // Hover state for SpotComponent relationships
   const hoveredBox = ref(null)
   const relatedBox = ref(null)
@@ -44,20 +54,26 @@ export const useGameStore = defineStore('game', () => {
     let func = isDefense ? 'defense' : 'offense'
     let url = `${baseUrl}/${func}/lineup`
 
+    isSubmittingLineup.value = true
     try {
       const response = await axios.post(url, lineup)
       gameMsg.value = response.data
       lineups.value[func] = lineup
 
       // handle success here
-    } catch (error) {
+    } catch (err) {
       // handle error here
-      if (error.response) {
+      if (err.response) {
         // handle 400 error here
-        let msg = error.response.data
+        let msg = err.response.data
         console.error(`Error setting lineup: ${msg}`)
         gameMsg.value = msg
+        error.value = `Failed to set ${func} lineup: ${msg}`
+      } else {
+        error.value = `Failed to set ${func} lineup`
       }
+    } finally {
+      isSubmittingLineup.value = false
     }
     // convert lineup object to JSON and send it to the server
   }
@@ -98,13 +114,16 @@ export const useGameStore = defineStore('game', () => {
     try {
       const response = await axios.get(url)
       lineups.value[team] = response.data
-    } catch (error) {
+    } catch (err) {
       // handle error here
-      if (error.response) {
+      if (err.response) {
         // handle 400 error here
-        let msg = error.response.data
+        let msg = err.response.data
         console.error(`Error fetching ${team} lineup: ${msg}`)
         gameMsg.value = msg
+        error.value = `Failed to fetch ${team} lineup: ${msg}`
+      } else {
+        error.value = `Failed to fetch ${team} lineup`
       }
     }
     // convert lineup object to JSON and send it to the server
@@ -118,16 +137,19 @@ export const useGameStore = defineStore('game', () => {
 
       playTypes.value = response.data.allowed_types || []
       nextPlayType.value = response.data.next_type || null
-    } catch (error) {
+    } catch (err) {
       // handle error here
-      console.error('Error fetching play types:', error)
+      console.error('Error fetching play types:', err)
       playTypes.value = [] // Ensure it's always an array
       nextPlayType.value = null // Reset next play type on error
-      if (error.response) {
+      if (err.response) {
         // handle 400 error here
-        let msg = error.response.data
+        let msg = err.response.data
         console.error(`Error fetching play types: ${msg}`)
         gameMsg.value = msg
+        error.value = `Failed to fetch play types: ${msg}`
+      } else {
+        error.value = 'Failed to fetch play types'
       }
     }
   }
@@ -138,37 +160,47 @@ export const useGameStore = defineStore('game', () => {
   async function setDefensivePlay(play) {
     let url = `${baseUrl}/defense/call`
 
-    // convert play object to JSON and send it to the server
-    const response = await axios.post(url, play, {
-      headers: {
-        'content-type': 'application/json'
-      }
-    })
-    // update the game state with the response data
-    gameMsg.value = response.data
+    isSubmittingPlay.value = true
+    try {
+      // convert play object to JSON and send it to the server
+      const response = await axios.post(url, play, {
+        headers: {
+          'content-type': 'application/json'
+        }
+      })
+      // update the game state with the response data
+      gameMsg.value = response.data
+    } catch (err) {
+      let msg = err.response ? err.response.data : err.message
+      console.error(`Error setting defensive play: ${msg}`)
+      gameMsg.value = msg
+      error.value = `Failed to submit defensive play: ${msg}`
+    } finally {
+      isSubmittingPlay.value = false
+    }
   }
 
   async function setOffensivePlay(play) {
-    // let data = JSON.stringify(play);
-    // console.log(data);
-
-    // let p =        {
-    //     "play_type": "SH",
-    //     "strategy": "Draw",
-    //     "target": "FL1"
-    // };
-
     let url = `${baseUrl}/offense/call`
 
-    // // convert play object to JSON and send it to the server
-    const response = await axios.post(url, play, {
-      headers: {
-        'content-type': 'application/json'
-      }
-    })
-    // // update the game state with the response data
-
-    gameMsg.value = response.data
+    isSubmittingPlay.value = true
+    try {
+      // convert play object to JSON and send it to the server
+      const response = await axios.post(url, play, {
+        headers: {
+          'content-type': 'application/json'
+        }
+      })
+      // update the game state with the response data
+      gameMsg.value = response.data
+    } catch (err) {
+      let msg = err.response ? err.response.data : err.message
+      console.error(`Error setting offensive play: ${msg}`)
+      gameMsg.value = msg
+      error.value = `Failed to submit offensive play: ${msg}`
+    } finally {
+      isSubmittingPlay.value = false
+    }
   }
 
   async function setKickoffPlay(kickoffOptions) {
@@ -179,6 +211,7 @@ export const useGameStore = defineStore('game', () => {
 
     let url = `${baseUrl}/offense/call`
 
+    isSubmittingPlay.value = true
     try {
       const response = await axios.post(url, playData, {
         headers: {
@@ -186,13 +219,13 @@ export const useGameStore = defineStore('game', () => {
         }
       })
       gameMsg.value = response.data
-    } catch (error) {
-      console.error('Error setting kickoff play:', error)
-      if (error.response) {
-        let msg = error.response.data
-        console.error(`Error setting kickoff play: ${msg}`)
-        gameMsg.value = msg
-      }
+    } catch (err) {
+      let msg = err.response ? err.response.data : err.message
+      console.error(`Error setting kickoff play: ${msg}`)
+      gameMsg.value = msg
+      error.value = `Failed to submit kickoff play: ${msg}`
+    } finally {
+      isSubmittingPlay.value = false
     }
   }
 
@@ -201,17 +234,22 @@ export const useGameStore = defineStore('game', () => {
 
     // convert play object to JSON and send it to the server
     let response
+    isRunningPlay.value = true
     try {
       response = await axios.post(url)
       gameMsg.value = response.data
-    } catch (error) {
-      if (error.response) {
-        let msg = error.response.data
+    } catch (err) {
+      if (err.response) {
+        let msg = err.response.data
         console.error(`Error running play: ${msg}`)
         gameMsg.value = msg
+        error.value = `Failed to run play: ${msg}`
       } else {
-        throw error
+        error.value = 'Failed to run play'
+        throw err
       }
+    } finally {
+      isRunningPlay.value = false
     }
     // update the game state with the response data
     // gameMsg.value = response.data;
@@ -262,9 +300,10 @@ export const useGameStore = defineStore('game', () => {
       } else {
         await fetchPlayResult()
       }
-    } catch (error) {
-      console.error('Error fetching game data:', error)
+    } catch (err) {
+      console.error('Error fetching game data:', err)
       gameMsg.value = 'Error fetching game data'
+      error.value = 'Failed to fetch game data'
     }
   }
 
@@ -278,12 +317,15 @@ export const useGameStore = defineStore('game', () => {
         }
       })
       gameMsg.value = response.data || 'Play type set successfully'
-    } catch (error) {
-      console.error('Error setting play type:', error)
-      if (error.response) {
-        let msg = error.response.data
+    } catch (err) {
+      console.error('Error setting play type:', err)
+      if (err.response) {
+        let msg = err.response.data
         console.error(`Error setting play type: ${msg}`)
         gameMsg.value = msg
+        error.value = `Failed to set play type: ${msg}`
+      } else {
+        error.value = 'Failed to set play type'
       }
     }
   }
@@ -334,6 +376,12 @@ export const useGameStore = defineStore('game', () => {
     setKickoffPlay,
     gameState,
     gameMsg,
+    // Async feedback state
+    error,
+    clearError,
+    isRunningPlay,
+    isSubmittingLineup,
+    isSubmittingPlay,
     getPlayer,
     getHardCodedValue,
     runPlay,
