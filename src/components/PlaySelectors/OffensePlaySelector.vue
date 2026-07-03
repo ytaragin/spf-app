@@ -7,13 +7,14 @@
 
       <v-select v-model="targetBox" :items="boxes" label="Target Box" density="compact"> </v-select>
 
-      <v-btn color="primary" @click="submitPlay">Submit Play</v-btn>
+      <v-btn color="primary" :loading="isSubmittingPlay" @click="submitPlay">Submit Play</v-btn>
     </v-card-text>
   </v-card>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { SPFMetadata } from '@/game/SPFMetadata.js'
 import { useGameStore } from '@/stores/gameStore'
 
@@ -23,6 +24,7 @@ defineProps({
 
 const gamesStore = useGameStore()
 const getPlayer = gamesStore.getPlayer
+const { isSubmittingPlay } = storeToRefs(gamesStore)
 
 const spfMetadata = new SPFMetadata()
 const plays = spfMetadata.getOffensivePlayNames()

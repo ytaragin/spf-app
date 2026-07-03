@@ -18,7 +18,13 @@
       :rows="offenseRows"
     />
 
-    <v-btn @click="submitLineup" color="success" variant="elevated">Submit Lineup</v-btn>
+    <v-btn
+      @click="submitLineup"
+      color="success"
+      variant="elevated"
+      :loading="isSubmittingLineup"
+      >Submit Lineup</v-btn
+    >
 
     <!-- Play Selector Section - Show after lineup is submitted -->
     <v-card v-if="lineupSubmitted" variant="outlined" class="play-selector-section">
@@ -53,7 +59,7 @@ const props = defineProps({
 
 const { playerPositions } = storeToRefs(useTeamsStore())
 const gameStore = useGameStore()
-const { getNextPlayType } = storeToRefs(gameStore)
+const { getNextPlayType, isSubmittingLineup } = storeToRefs(gameStore)
 const spfMetadata = new SPFMetadata()
 
 // State to track if lineup has been submitted

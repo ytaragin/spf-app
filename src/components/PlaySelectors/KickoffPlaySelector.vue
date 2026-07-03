@@ -23,7 +23,9 @@
         </v-radio-group>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="submitPlay" color="primary" variant="elevated">Submit Play</v-btn>
+        <v-btn @click="submitPlay" color="primary" variant="elevated" :loading="isSubmittingPlay"
+          >Submit Play</v-btn
+        >
       </v-card-actions>
     </v-card>
   </div>
@@ -31,6 +33,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useGameStore } from '@/stores/gameStore'
 
 defineOptions({ name: 'KickoffPlaySelector' })
@@ -43,6 +46,7 @@ defineProps({
 })
 
 const gameStore = useGameStore()
+const { isSubmittingPlay } = storeToRefs(gameStore)
 
 // Default to normal kick (onside OFF)
 const onsideEnabled = ref(false)
@@ -54,17 +58,8 @@ const submitPlay = () => {
     onside: onsideEnabled.value
   }
 
-  // You may need to add a method to gameStore to handle kickoff plays
-  // For now, we'll use a generic setPlay method or extend the store
-  if (gameStore.setKickoffPlay) {
-    gameStore.setKickoffPlay(kickoffPlay)
-  } else {
-    // Fallback - you might need to add this method to your game store
-    console.warn(
-      'gameStore.setKickoffPlay not available, kickoff play not submitted:',
-      kickoffPlay
-    )
-  }
+  // Errors surface via the store's error state -> global snackbar.
+  gameStore.setKickoffPlay(kickoffPlay)
 }
 </script>
 

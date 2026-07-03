@@ -47,7 +47,14 @@
       <v-col cols="12" md="6">
         <PlayTypeSelector />
         <PlayLineup :offenseActive="offenseActive" />
-        <v-btn @click="runPlay" color="success" variant="elevated" block class="my-3">
+        <v-btn
+          @click="runPlay"
+          color="success"
+          variant="elevated"
+          block
+          class="my-3"
+          :loading="isRunningPlay"
+        >
           Run Play
         </v-btn>
         <PlayResult />
@@ -68,7 +75,7 @@ import PlayLineup from './PlayLineup.vue'
 import PlayResult from './PlayResult.vue'
 import PlayHistory from './PlayHistory.vue'
 
-const { gameState } = storeToRefs(useGameStore())
+const { gameState, isRunningPlay } = storeToRefs(useGameStore())
 const teamsStore = useTeamsStore()
 const { managedTeam } = storeToRefs(teamsStore)
 const gamesStore = useGameStore()

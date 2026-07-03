@@ -5,13 +5,29 @@
       <v-btn @click="refreshResult" size="small" variant="outlined">Refresh</v-btn>
     </v-card-title>
     <v-card-text>
-      <div class="result-summary">
-        <div class="result-type">
-          <strong>Result Type:</strong> {{ playResult.result.result_type }}
-        </div>
-        <div class="result-value"><strong>Result:</strong> {{ playResult.result.result }} yards</div>
-        <div class="time-elapsed"><strong>Time:</strong> {{ playResult.result.time }} seconds</div>
-      </div>
+      <v-expand-transition>
+        <v-alert
+          :key="playResult.new_state && playResult.new_state.play_counter"
+          :color="outcomeColor"
+          :icon="outcomeIcon"
+          variant="tonal"
+          border="start"
+          class="mb-4"
+        >
+          <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+            <div>
+              <div class="text-h6">{{ outcomeLabel }}</div>
+              <div class="text-caption text-medium-emphasis">
+                Time: {{ playResult.result.time }}s
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-h4 font-weight-bold">{{ resultYards }}</div>
+              <div class="text-caption text-medium-emphasis">yards</div>
+            </div>
+          </div>
+        </v-alert>
+      </v-expand-transition>
 
       <div
         class="play-details"
@@ -97,6 +113,29 @@ const showMechanics = ref(false)
 
 const playResult = computed(() => getPlayResult.value)
 
+// Yards gained/lost on the play (may be undefined for non-yardage results).
+const resultYards = computed(() => playResult.value?.result?.result ?? 0)
+const resultType = computed(() => playResult.value?.result?.result_type ?? '')
+
+// Color the outcome: turnovers are errors, gains are success, no-gain is neutral.
+const outcomeColor = computed(() => {
+  if (resultType.value === 'TurnOver') return 'error'
+  if (Number(resultYards.value) > 0) return 'success'
+  return 'warning'
+})
+
+const outcomeIcon = computed(() => {
+  if (resultType.value === 'TurnOver') return 'mdi-alert-octagon'
+  if (Number(resultYards.value) > 0) return 'mdi-arrow-up-bold'
+  return 'mdi-minus-circle'
+})
+
+// Friendly label for the outcome headline.
+const outcomeLabel = computed(() => {
+  if (resultType.value === 'TurnOver') return 'Turnover'
+  return resultType.value || 'Result'
+})
+
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
@@ -113,25 +152,6 @@ const refreshResult = async () => {
 </script>
 
 <style scoped>
-.result-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  background-color: rgba(var(--v-theme-on-surface), 0.04);
-  border-radius: 4px;
-}
-
-.result-type {
-  color: rgb(var(--v-theme-primary));
-}
-
-.result-value {
-  color: rgb(var(--v-theme-success));
-  font-weight: bold;
-}
-
 .play-details {
   margin: 1rem 0;
 }

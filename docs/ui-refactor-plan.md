@@ -104,23 +104,41 @@ Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> 
 
 ### Foundation — store async/error state
 
-- [ ] Add a store-level `error` ref (or small notifications concept) and per-action loading
+- [x] Add a store-level `error` ref (or small notifications concept) and per-action loading
       flags (e.g., `isRunningPlay`, `isSubmittingLineup`, `isSubmittingPlay`) to
       `stores/gameStore`. Today every method swallows failures into `gameMsg` + `console.error`
       and there is **no loading state at all** — this is the precondition for the tasks below.
 
+> Foundation completed (commit `bf9d987`): added `error` ref, `clearError()`, and per-action
+> flags (`isRunningPlay`, `isSubmittingLineup`, `isSubmittingPlay`). All async store methods now
+> set `error` in their `catch` blocks and toggle their flag via `try/finally`. Fixed two latent
+> bugs: `setOffensivePlay`/`setDefensivePlay` had no `try/catch`, and `catch (error)` blocks were
+> shadowing the new `error` ref (renamed to `catch (err)`).
+
 ### Feedback — surface it to the user
 
-- [ ] Add a global `v-snackbar` (+ inline `v-alert` where appropriate) that reads the store
+- [x] Add a global `v-snackbar` (+ inline `v-alert` where appropriate) that reads the store
       `error`. Route existing `console.error` (store `catch` blocks) and the `console.warn`
       fallback in `KickoffPlaySelector.vue` `submitPlay` through it. Note: `setKickoffPlay`
       already exists, so that fallback branch is effectively dead — real errors need to surface
       from the store `catch` blocks.
-- [ ] Wire `:loading` on the async buttons using the flags above: Run Play (`GameLayout.vue`),
+- [x] Wire `:loading` on the async buttons using the flags above: Run Play (`GameLayout.vue`),
       Submit Lineup (`PlayLineup.vue`), Submit Play (`PlaySelectors/*`).
-- [ ] Redesign the play-result moment: colored `v-alert`/`v-chip` keyed on
+- [x] Redesign the play-result moment: colored `v-alert`/`v-chip` keyed on
       `playResult.result.result_type` (gain=success, turnover=error), `v-expand-transition`,
       prominent `playResult.result.result` yardage (`PlayResult.vue`).
+
+> Feedback completed. Notes:
+> - Global `v-snackbar` (color `error`, 6s timeout, close button) lives in `GameView.vue`, bound
+>   to the store `error` via a writable computed that calls `clearError()` on close.
+> - `KickoffPlaySelector.vue` `submitPlay` dead `console.warn` fallback removed; it now always
+>   calls `setKickoffPlay` so errors surface through the store `catch` -> snackbar.
+> - `:loading` wired: Run Play -> `isRunningPlay`, Submit Lineup -> `isSubmittingLineup`,
+>   all three play selectors' Submit Play -> `isSubmittingPlay`.
+> - `PlayResult.vue`: the plain result-summary grid was replaced by a prominent tonal `v-alert`
+>   (icon + outcome label + big yardage number), colored by outcome (`TurnOver`=error,
+>   gain=success, no-gain=warning) matching `PlayHistory.vue`'s convention. Keyed on
+>   `new_state.play_counter` inside a `v-expand-transition` so it animates on each new play.
 
 ### Guidance — make the play sequence legible
 

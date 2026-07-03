@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { useTheme } from 'vuetify'
+import { storeToRefs } from 'pinia'
 import { useGameStore } from '@/stores/gameStore'
 import { useTeamsStore } from '@/stores/teamStore'
 import GameLayout from '@/components/GameLayout.vue'
@@ -9,6 +10,16 @@ import GameStatus from '@/components/GameStatus.vue'
 const gameStore = useGameStore()
 const teamsStore = useTeamsStore()
 const theme = useTheme()
+
+const { error } = storeToRefs(gameStore)
+
+// The snackbar is open whenever the store holds an error; closing it clears the error.
+const showError = computed({
+  get: () => error.value !== null,
+  set: (value) => {
+    if (!value) gameStore.clearError()
+  }
+})
 
 onMounted(async () => {
   await Promise.all([teamsStore.fetchPlayers(), gameStore.fetchGame()])
@@ -46,6 +57,13 @@ const toggleTheme = () => {
       <GameLayout />
     </v-container>
   </v-main>
+
+  <v-snackbar v-model="showError" color="error" location="bottom" :timeout="6000" multi-line>
+    {{ error }}
+    <template #actions>
+      <v-btn variant="text" icon="mdi-close" @click="showError = false"></v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <style scoped>
