@@ -142,12 +142,22 @@ Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> 
 
 ### Guidance — make the play sequence legible
 
-- [ ] Move `lineupSubmitted` out of `PlayLineup.vue` (local `ref`) into the store as flow
+- [x] Move `lineupSubmitted` out of `PlayLineup.vue` (local `ref`) into the store as flow
       state, **and reset it in `runPlay()`** — it is currently never reset, so the "Select
       Play" card stays open across plays (`stores/gameStore`, `PlayLineup.vue`).
-- [ ] Use that flow state to gate/highlight the play-flow sections in the existing two-column
+- [x] Use that flow state to gate/highlight the play-flow sections in the existing two-column
       layout (e.g., disable "Run Play" until lineup submitted, emphasize the active section).
       Lightweight guidance that respects the current grid.
+
+> Guidance completed. Notes:
+> - `lineupSubmitted` now lives in `gameStore` (with `setLineupSubmitted()`); it is reset to
+>   `false` inside `runPlay()` on success, fixing the never-reset bug (the "Select Play" card
+>   no longer stays open across plays). `PlayLineup.vue` reads it via `storeToRefs` and sets it
+>   through the action.
+> - Gating/highlighting: "Run Play" is `:disabled` until the lineup is submitted, with an inline
+>   `v-alert` hint when disabled (`GameLayout.vue`). Once submitted, a "Lineup set" success chip
+>   appears next to Submit Lineup and the "Select Play" card is emphasized (`color="primary"`),
+>   marking it as the active step (`PlayLineup.vue`).
 
 ### Optional / deferred
 

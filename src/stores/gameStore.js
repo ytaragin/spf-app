@@ -32,8 +32,16 @@ export const useGameStore = defineStore('game', () => {
   const isSubmittingLineup = ref(false)
   const isSubmittingPlay = ref(false)
 
+  // Play-flow state: has the current play's lineup been submitted? Drives the
+  // "Select Play" section and gates "Run Play". Reset after each play runs.
+  const lineupSubmitted = ref(false)
+
   function clearError() {
     error.value = null
+  }
+
+  function setLineupSubmitted(value) {
+    lineupSubmitted.value = value
   }
 
   // Hover state for SpotComponent relationships
@@ -238,6 +246,8 @@ export const useGameStore = defineStore('game', () => {
     try {
       response = await axios.post(url)
       gameMsg.value = response.data
+      // Play ran successfully: collapse the lineup/play-call flow for the next play.
+      lineupSubmitted.value = false
     } catch (err) {
       if (err.response) {
         let msg = err.response.data
@@ -382,6 +392,9 @@ export const useGameStore = defineStore('game', () => {
     isRunningPlay,
     isSubmittingLineup,
     isSubmittingPlay,
+    // Play-flow state
+    lineupSubmitted,
+    setLineupSubmitted,
     getPlayer,
     getHardCodedValue,
     runPlay,

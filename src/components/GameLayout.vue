@@ -54,9 +54,19 @@
           block
           class="my-3"
           :loading="isRunningPlay"
+          :disabled="!lineupSubmitted"
         >
           Run Play
         </v-btn>
+        <v-alert
+          v-if="!lineupSubmitted"
+          type="info"
+          variant="tonal"
+          density="compact"
+          class="mb-3"
+        >
+          Submit the lineup and call a play before running it.
+        </v-alert>
         <PlayResult />
       </v-col>
     </v-row>
@@ -75,7 +85,7 @@ import PlayLineup from './PlayLineup.vue'
 import PlayResult from './PlayResult.vue'
 import PlayHistory from './PlayHistory.vue'
 
-const { gameState, isRunningPlay } = storeToRefs(useGameStore())
+const { gameState, isRunningPlay, lineupSubmitted } = storeToRefs(useGameStore())
 const teamsStore = useTeamsStore()
 const { managedTeam } = storeToRefs(teamsStore)
 const gamesStore = useGameStore()

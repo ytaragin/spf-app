@@ -18,16 +18,27 @@
       :rows="offenseRows"
     />
 
-    <v-btn
-      @click="submitLineup"
-      color="success"
-      variant="elevated"
-      :loading="isSubmittingLineup"
-      >Submit Lineup</v-btn
-    >
+    <div class="d-flex align-center ga-3">
+      <v-btn
+        @click="submitLineup"
+        color="success"
+        variant="elevated"
+        :loading="isSubmittingLineup"
+        >Submit Lineup</v-btn
+      >
+      <v-chip v-if="lineupSubmitted" color="success" size="small" variant="tonal">
+        <v-icon start icon="mdi-check"></v-icon>
+        Lineup set
+      </v-chip>
+    </div>
 
     <!-- Play Selector Section - Show after lineup is submitted -->
-    <v-card v-if="lineupSubmitted" variant="outlined" class="play-selector-section">
+    <v-card
+      v-if="lineupSubmitted"
+      variant="outlined"
+      class="play-selector-section"
+      color="primary"
+    >
       <v-card-title class="text-subtitle-1 py-2">Select Play</v-card-title>
       <v-card-text>
         <component v-if="getPlaySelector" :is="getPlaySelector" :active="true" />
@@ -38,7 +49,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTeamsStore } from '../stores/teamStore'
 import { useGameStore } from '../stores/gameStore'
@@ -59,11 +70,8 @@ const props = defineProps({
 
 const { playerPositions } = storeToRefs(useTeamsStore())
 const gameStore = useGameStore()
-const { getNextPlayType, isSubmittingLineup } = storeToRefs(gameStore)
+const { getNextPlayType, isSubmittingLineup, lineupSubmitted } = storeToRefs(gameStore)
 const spfMetadata = new SPFMetadata()
-
-// State to track if lineup has been submitted
-const lineupSubmitted = ref(false)
 
 const nextPlayType = computed(() => getNextPlayType.value)
 
@@ -124,7 +132,7 @@ const submitLineup = () => {
   gameStore.setLineup(obj, isDefense)
 
   // Mark lineup as submitted to proceed to next step
-  lineupSubmitted.value = true
+  gameStore.setLineupSubmitted(true)
 }
 </script>
 
