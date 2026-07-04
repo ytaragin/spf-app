@@ -15,8 +15,8 @@
         <v-timeline-item
           v-for="(play, index) in playResults"
           :key="index"
-          :dot-color="resultColor(play.result)"
-          :icon="resultIcon(play.result)"
+          :dot-color="playColor(play)"
+          :icon="playIcon(play)"
           size="small"
         >
           <v-expansion-panels variant="accordion">
@@ -26,7 +26,7 @@
                   <span class="text-primary font-weight-bold">Play {{ index + 1 }}</span>
                   <span class="font-weight-medium">{{ play.new_state.possession }}</span>
                   <span class="text-medium-emphasis">Yard {{ play.new_state.yard_line }}</span>
-                  <v-chip size="small" :color="resultColor(play.result)" variant="tonal">
+                  <v-chip size="small" :color="playColor(play)" variant="tonal">
                     {{ formatPlayResult(play.result) }}
                   </v-chip>
                 </div>
@@ -45,38 +45,26 @@
 <script setup>
 import { computed } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
+import { useTeamsStore } from '@/stores/teamStore'
 import { storeToRefs } from 'pinia'
 import PlayResultDetails from './PlayResultDetails.vue'
+import { outcomeColor, outcomeIcon, outcomeSummary, managedTeamHadPossession } from '@/game/playOutcome.js'
 
 defineOptions({ name: 'PlayHistory' })
 
 const gameStore = useGameStore()
+const teamsStore = useTeamsStore()
 const { getAllPlayResults } = storeToRefs(gameStore)
+const { managedTeam } = storeToRefs(teamsStore)
 
 const playResults = computed(() => getAllPlayResults.value)
 
-const formatPlayResult = (result) => {
-  if (result.result_type === 'TurnOver') {
-    return `Turnover - ${result.result} yards`
-  }
-  // Add more result type formatting as needed
-  return `${result.result_type} - ${result.result} yards`
-}
+// Summary text for the chip, e.g. "Complete - 8 yards".
+const formatPlayResult = (result) => outcomeSummary(result)
 
-const resultColor = (result) => {
-  if (result.result_type === 'TurnOver') {
-    return 'error'
-  }
-  return 'success'
-}
+// Color from the managed team's perspective (turnover reads as success on defense).
+const playColor = (play) =>
+  outcomeColor(play.result, { favorable: managedTeamHadPossession(play, managedTeam.value) })
 
-const resultIcon = (result) => {
-  if (result.result_type === 'TurnOver') {
-    return 'mdi-alert-octagon'
-  }
-  if (Number(result.result) > 0) {
-    return 'mdi-arrow-up-bold'
-  }
-  return 'mdi-football'
-}
+const playIcon = (play) => outcomeIcon(play.result)
 </script>

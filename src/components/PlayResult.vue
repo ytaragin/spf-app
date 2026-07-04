@@ -103,38 +103,31 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
+import { useTeamsStore } from '@/stores/teamStore'
 import { storeToRefs } from 'pinia'
+import { classifyOutcome, managedTeamHadPossession } from '@/game/playOutcome.js'
 
 defineOptions({ name: 'PlayResult' })
 
 const gameStore = useGameStore()
+const teamsStore = useTeamsStore()
 const { getPlayResult } = storeToRefs(gameStore)
+const { managedTeam } = storeToRefs(teamsStore)
 const showMechanics = ref(false)
 
 const playResult = computed(() => getPlayResult.value)
 
-// Yards gained/lost on the play (may be undefined for non-yardage results).
-const resultYards = computed(() => playResult.value?.result?.result ?? 0)
-const resultType = computed(() => playResult.value?.result?.result_type ?? '')
-
-// Color the outcome: turnovers are errors, gains are success, no-gain is neutral.
-const outcomeColor = computed(() => {
-  if (resultType.value === 'TurnOver') return 'error'
-  if (Number(resultYards.value) > 0) return 'success'
-  return 'warning'
-})
-
-const outcomeIcon = computed(() => {
-  if (resultType.value === 'TurnOver') return 'mdi-alert-octagon'
-  if (Number(resultYards.value) > 0) return 'mdi-arrow-up-bold'
-  return 'mdi-minus-circle'
-})
-
-// Friendly label for the outcome headline.
-const outcomeLabel = computed(() => {
-  if (resultType.value === 'TurnOver') return 'Turnover'
-  return resultType.value || 'Result'
-})
+// Outcome color/icon/label from the managed team's perspective (a turnover reads
+// as success when our team was on defense). All logic lives in playOutcome.js.
+const outcome = computed(() =>
+  classifyOutcome(playResult.value?.result, {
+    favorable: managedTeamHadPossession(playResult.value, managedTeam.value)
+  })
+)
+const outcomeColor = computed(() => outcome.value.color)
+const outcomeIcon = computed(() => outcome.value.icon)
+const outcomeLabel = computed(() => outcome.value.label)
+const resultYards = computed(() => outcome.value.netYards)
 
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60)

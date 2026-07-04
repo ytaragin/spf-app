@@ -165,11 +165,19 @@ Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> 
       via `getAllPlayResults`).
 
 > `PlayHistory.vue` now renders plays in a `v-timeline` (`side="end"`, compact) — a vertical
-> drive log. Each `v-timeline-item` has a dot colored by outcome (`resultColor`) and an icon
-> (`resultIcon`: turnover=alert-octagon, gain=arrow-up, else=football), matching the
-> `PlayResult.vue` outcome convention. The expandable `PlayResultDetails` was preserved by
-> nesting a single-panel `v-expansion-panels` inside each item, so per-play details are still
-> available on demand. Order kept oldest-first to preserve "Play 1, 2, 3…" numbering.
+> drive log. Each `v-timeline-item` has a dot colored by outcome and an icon (turnover=alert-octagon,
+> gain=arrow-up, else=football), matching the `PlayResult.vue` outcome convention. The expandable
+> `PlayResultDetails` was preserved by nesting a single-panel `v-expansion-panels` inside each item,
+> so per-play details are still available on demand. Order kept oldest-first to preserve
+> "Play 1, 2, 3…" numbering.
+>
+> Follow-up (outcome logic unified): the color/icon/label logic that was duplicated (and had
+> diverged) between `PlayResult.vue` and `PlayHistory.vue` was extracted into a single pure module
+> `src/game/playOutcome.js` (`classifyOutcome`, `outcomeColor`, `outcomeIcon`, `outcomeLabel`,
+> `outcomeSummary`, `managedTeamHadPossession`). Color is now **relative to the managed team's
+> perspective**: a turnover or no-gain reads as `error` when our team had the ball but `success`
+> when we were defending. Components pass `favorable = managedTeamHadPossession(play, managedTeam)`
+> (case-insensitive possession compare). This also folds into the Phase 3 "reduce duplication" goal.
 - [-] `v-stepper` for Play Type -> Set Lineup -> Call Play -> Run Play: demoted. It fights the
       two-column layout established in Phase 0/1 and re-opens the parked layout decision, and
       the flow is not strictly linear (defense has no equivalent "Call Play"; kickoff is
