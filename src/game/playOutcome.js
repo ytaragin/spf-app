@@ -92,13 +92,13 @@ export function classifyOutcome(result, opts = {}) {
 /**
  * Perspective helper: did the managed team have possession on this play?
  *
- * Compares the play's possession (e.g. `play.new_state.possession`, "home"/"Home")
- * to the managed team ("Home"/"Away") case-insensitively. Returns true when they
- * match (managed team was on offense), which is the `favorable` value to pass to
- * `outcomeColor` / `classifyOutcome`.
+ * Compares the play's possession (`play.new_state.possession`, "Home"/"Away" as
+ * returned by the server) to the managed team ("Home"/"Away"). Returns true when
+ * they match (managed team was on offense), which is the `favorable` value to pass
+ * to `outcomeColor` / `classifyOutcome`.
  */
 export function managedTeamHadPossession(play, managedTeam) {
   const possession = play?.new_state?.possession
   if (!possession || !managedTeam) return true // default to offense perspective
-  return String(possession).toLowerCase() === String(managedTeam).toLowerCase()
+  return possession === managedTeam
 }
