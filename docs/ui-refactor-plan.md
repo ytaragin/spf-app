@@ -136,9 +136,10 @@ Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> 
 > - `:loading` wired: Run Play -> `isRunningPlay`, Submit Lineup -> `isSubmittingLineup`,
 >   all three play selectors' Submit Play -> `isSubmittingPlay`.
 > - `PlayResult.vue`: the plain result-summary grid was replaced by a prominent tonal `v-alert`
->   (icon + outcome label + big yardage number), colored by outcome (`TurnOver`=error,
->   gain=success, no-gain=warning) matching `PlayHistory.vue`'s convention. Keyed on
->   `new_state.play_counter` inside a `v-expand-transition` so it animates on each new play.
+>   (icon + outcome label + big yardage number), colored by outcome. (Superseded — see the
+>   outcome-unification follow-up below: color is now relative to the managed team's
+>   perspective, not a fixed 3-way scheme.) Keyed on `new_state.play_counter` inside a
+>   `v-expand-transition` so it animates on each new play.
 
 ### Guidance — make the play sequence legible
 
@@ -176,8 +177,17 @@ Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> 
 > `src/game/playOutcome.js` (`classifyOutcome`, `outcomeColor`, `outcomeIcon`, `outcomeLabel`,
 > `outcomeSummary`, `managedTeamHadPossession`). Color is now **relative to the managed team's
 > perspective**: a turnover or no-gain reads as `error` when our team had the ball but `success`
-> when we were defending. Components pass `favorable = managedTeamHadPossession(play, managedTeam)`
-> (case-insensitive possession compare). This also folds into the Phase 3 "reduce duplication" goal.
+> when we were defending. Components pass `favorable = managedTeamHadPossession(play, managedTeam)`.
+> This also folds into the Phase 3 "reduce duplication" goal.
+>
+> Follow-up (possession casing bug): confirmed with the backend that `possession` is
+> authoritatively `"Home"`/`"Away"` (capitalized). This exposed a latent bug — the seed
+> `gameState.possession` default in `gameStore.js` was lowercase `'home'`, which silently broke
+> the exact-case comparisons in `GameStatus.vue` (`possessionTeam`) and `GameLayout.vue`
+> (`offenseActive`) until the first real `/game/state` fetch overwrote it. Fixed the seed to
+> `'Home'`, and simplified `managedTeamHadPossession` from a case-insensitive compare to an exact
+> one, since casing is now known-authoritative.
+
 - [-] `v-stepper` for Play Type -> Set Lineup -> Call Play -> Run Play: demoted. It fights the
       two-column layout established in Phase 0/1 and re-opens the parked layout decision, and
       the flow is not strictly linear (defense has no equivalent "Call Play"; kickoff is
