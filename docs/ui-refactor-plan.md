@@ -161,8 +161,15 @@ Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> 
 
 ### Optional / deferred
 
-- [ ] (Optional) `v-timeline` for `PlayHistory.vue` to read like a drive log (data available
+- [x] (Optional) `v-timeline` for `PlayHistory.vue` to read like a drive log (data available
       via `getAllPlayResults`).
+
+> `PlayHistory.vue` now renders plays in a `v-timeline` (`side="end"`, compact) — a vertical
+> drive log. Each `v-timeline-item` has a dot colored by outcome (`resultColor`) and an icon
+> (`resultIcon`: turnover=alert-octagon, gain=arrow-up, else=football), matching the
+> `PlayResult.vue` outcome convention. The expandable `PlayResultDetails` was preserved by
+> nesting a single-panel `v-expansion-panels` inside each item, so per-play details are still
+> available on demand. Order kept oldest-first to preserve "Play 1, 2, 3…" numbering.
 - [-] `v-stepper` for Play Type -> Set Lineup -> Call Play -> Run Play: demoted. It fights the
       two-column layout established in Phase 0/1 and re-opens the parked layout decision, and
       the flow is not strictly linear (defense has no equivalent "Call Play"; kickoff is
