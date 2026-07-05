@@ -33,18 +33,8 @@
     </v-card>
 
     <v-row>
-      <v-col cols="12" md="6">
-        <v-card variant="outlined" class="field-card mb-3">
-          <v-card-text>
-            <FootballField
-              :ballPosition="gameState.yard_line"
-              :firstDownTarget="gameState.first_down_target"
-            />
-          </v-card-text>
-        </v-card>
-        <PlayHistory />
-      </v-col>
-      <v-col cols="12" md="6">
+      <!-- Main column: the play flow is the star, so it gets the width. -->
+      <v-col cols="12" md="8" lg="9">
         <PlayTypeSelector />
         <PlayLineup :offenseActive="offenseActive" />
         <v-btn
@@ -68,6 +58,21 @@
           Submit the lineup and call a play before running it.
         </v-alert>
         <PlayResult />
+      </v-col>
+
+      <!-- Thin right rail: field + play history, sticky on desktop. -->
+      <v-col cols="12" md="4" lg="3">
+        <div class="side-rail">
+          <v-card variant="outlined" class="field-card mb-3">
+            <v-card-text>
+              <FootballField
+                :ballPosition="gameState.yard_line"
+                :firstDownTarget="gameState.first_down_target"
+              />
+            </v-card-text>
+          </v-card>
+          <PlayHistory />
+        </div>
       </v-col>
     </v-row>
   </div>
@@ -140,6 +145,15 @@ const runPlay = async () => {
 @media (min-width: 1400px) {
   .game-layout {
     max-width: 1800px;
+  }
+}
+
+/* Sticky right rail so the field + history stay in view while working the
+   lineup. Only sticks on md+; on mobile the columns stack normally. */
+@media (min-width: 960px) {
+  .side-rail {
+    position: sticky;
+    top: 80px; /* clears the fixed app bar */
   }
 }
 
