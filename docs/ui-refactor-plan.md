@@ -200,7 +200,7 @@ Tasks are grouped: **Foundation** (store state) -> **Feedback** (surface it) -> 
 
 Goal: make the centerpiece responsive and reduce duplication / dead code.
 
-- [ ] Make `FootballField.vue` responsive: aspect-ratio/SVG or `%`-based instead of fixed
+- [x] Make `FootballField.vue` responsive: aspect-ratio/SVG or `%`-based instead of fixed
       600x300 with inline styles; drive markers from props.
 - [ ] Add a `v-progress-linear`-style yardage/field-position bar.
 - [ ] Standardize `players/*` stat cards on a shared `v-table`/`v-chip` layout via a single
@@ -209,6 +209,18 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 - [ ] Remove dead/commented code (e.g., bottom ~40 lines of `PlayerSelector.vue`).
 - [ ] Switch to per-component Vuetify imports via `vite-plugin-vuetify` for smaller bundles
       (`src/main.js`, `vite.config.js`).
+
+> `FootballField.vue` responsiveness done ahead of the rest of Phase 3, pulled forward because
+> the upcoming `GameLayout.vue` layout rework (wide centered play-flow + thin side rail) needs a
+> field that can flex into a narrow column. The field now fills its container width at a fixed
+> `aspect-ratio: 2 / 1` (was a hardcoded 600x300 `v-img`) and renders via a CSS `background-image`
+> instead of `v-img` + absolutely-positioned pixel overlays. The line of scrimmage, first-down
+> line, and ball are positioned with `%` (derived from the same 0-100 yard-line math, just
+> expressed as percentages of field width) instead of pixels computed from `fieldWidth`/
+> `fieldHeight` props, so no JS measurement/`ResizeObserver` is needed — it scales purely via
+> CSS. Dropped the now-unused `fieldWidth`/`fieldHeight` pixel props (the only caller,
+> `GameLayout.vue`, used the defaults) in favor of an optional `maxWidth` cap; `ballPosition` and
+> `firstDownTarget` props are unchanged.
 
 ---
 
