@@ -1,53 +1,29 @@
 <template>
-  <v-img
-    src="field1.png"
-    alt="Football field"
-    :height="fieldHeight"
-    :width="fieldWidth"
-    position="relative"
-  >
-    <!-- Current ball position line (line of scrimmage) -->
+  <!-- Responsive field: fills its container width and keeps a 2:1 aspect ratio.
+       All overlays are positioned as percentages so they scale with the field
+       at any size (no fixed pixels / JS measurement needed). -->
+  <div class="football-field" :style="fieldStyle">
+    <!-- Line of scrimmage (current ball position) -->
     <div
-      :style="{
-        position: 'absolute',
-        top: '0px',
-        left: `${ball_left}px`,
-        width: '3px',
-        height: `${fieldHeight}px`,
-        backgroundColor: 'lightblue',
-        zIndex: 1
-      }"
-      alt="Line of scrimmage"
+      class="field-line line-scrimmage"
+      :style="{ left: `${ballLeftPct}%` }"
+      aria-label="Line of scrimmage"
     />
     <!-- First down target line -->
     <div
       v-if="firstDownTarget !== null"
-      :style="{
-        position: 'absolute',
-        top: '0px',
-        left: `${first_down_left}px`,
-        width: '3px',
-        height: `${fieldHeight}px`,
-        backgroundColor: 'yellow',
-        zIndex: 1
-      }"
-      alt="First down target line"
+      class="field-line line-first-down"
+      :style="{ left: `${firstDownLeftPct}%` }"
+      aria-label="First down target line"
     />
-    <!-- Ball -->
-    <v-img
-      src="ball4.png"
-      alt="Overlay image"
-      :style="{
-        position: 'absolute',
-        top: `${ball_top}px`, // Adjust positioning as needed
-        left: `${ball_left_offset}px`, // Positioned behind the line of scrimmage
-        width: `${ball_width}px`, // Adjust dimensions as needed
-        height: `${ball_height}px`, // Adjust dimensions as needed
-        border: '1px solid #000',
-        zIndex: 2
-      }"
+    <!-- Ball, sitting just behind the line of scrimmage -->
+    <img
+      src="/ball4.png"
+      alt="Ball"
+      class="field-ball"
+      :style="ballStyle"
     />
-  </v-img>
+  </div>
 </template>
 
 <script setup>
@@ -56,44 +32,85 @@ import { computed } from 'vue'
 const props = defineProps({
   ballPosition: {
     type: Number,
-    default: 60 // Set default value
+    default: 60 // yard line, 0-100
   },
   firstDownTarget: {
     type: Number,
-    default: null // Set default value to null (no first down line)
+    default: null // null = no first down line
   },
-  fieldWidth: {
-    type: Number,
-    default: 600 // Set default value
-  },
-  fieldHeight: {
-    type: Number,
-    default: 300 // Set default value
+  // Optional cap on the rendered width. `null` lets the field fill its
+  // container (recommended). Accepts a number (px) or any CSS length string.
+  maxWidth: {
+    type: [Number, String],
+    default: null
   }
 })
 
-const edge_buffer = computed(() => Math.floor(0.1 * props.fieldWidth))
-const ball_width = computed(() => props.fieldWidth / 16) // Made smaller (was /8)
-const ball_height = computed(() => props.fieldHeight / 8) // Made smaller (was /4)
-const ball_top = computed(() => props.fieldHeight / 2 - ball_height.value / 2)
-const actual_width = computed(() => props.fieldWidth - 2 * edge_buffer.value)
+// Percentage of the field width kept clear at each edge (behind the end zones).
+const EDGE_BUFFER_PCT = 10
+const PLAYABLE_PCT = 100 - 2 * EDGE_BUFFER_PCT
 
-// Function to calculate x position based on yard line (0-100)
-const calculateXPosition = (yardLine) => {
-  return edge_buffer.value + (actual_width.value * yardLine) / 100
-}
+// Ball is sized relative to the field so it scales at any width.
+const BALL_WIDTH_PCT = 100 / 16 // ~6.25% of field width
 
-const ball_left = computed(() => calculateXPosition(props.ballPosition))
-// Position ball behind the line of scrimmage (towards the offense's own goal)
-const ball_left_offset = computed(() => ball_left.value - ball_width.value) // 5px gap from line
+// Map a yard line (0-100) to a horizontal percentage across the field.
+const yardToPct = (yardLine) => EDGE_BUFFER_PCT + (PLAYABLE_PCT * yardLine) / 100
 
-// First down line positioning
-const first_down_left = computed(() => {
-  if (props.firstDownTarget === null) return null
-  return calculateXPosition(props.firstDownTarget)
+const ballLeftPct = computed(() => yardToPct(props.ballPosition))
+
+const firstDownLeftPct = computed(() =>
+  props.firstDownTarget === null ? null : yardToPct(props.firstDownTarget)
+)
+
+const fieldStyle = computed(() => {
+  if (props.maxWidth === null) return {}
+  const mw = typeof props.maxWidth === 'number' ? `${props.maxWidth}px` : props.maxWidth
+  return { maxWidth: mw }
 })
+
+// Sit the ball just behind (to the left of) the line of scrimmage.
+const ballStyle = computed(() => ({
+  width: `${BALL_WIDTH_PCT}%`,
+  left: `${ballLeftPct.value - BALL_WIDTH_PCT}%`
+}))
 </script>
 
-<style>
-/* Football field styling */
+<style scoped>
+.football-field {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  margin: 0 auto;
+  background-image: url('/field1.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.field-line {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.line-scrimmage {
+  background-color: lightblue;
+}
+
+.line-first-down {
+  background-color: yellow;
+}
+
+.field-ball {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: auto;
+  border: 1px solid #000;
+  z-index: 2;
+}
 </style>
