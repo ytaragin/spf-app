@@ -207,6 +207,11 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 - [ ] Add a `v-progress-linear`-style yardage/field-position bar.
 - [ ] Standardize `players/*` stat cards on a shared `v-table`/`v-chip` layout via a single
       `PlayerStatCard` wrapper.
+- [ ] De-duplicate play-detail rendering: `PlayResult.vue` hand-rolls the details/new-state/
+      mechanics/cards markup inline (which has diverged from `PlayResultDetails.vue`), while
+      `PlayHistory.vue` reuses `PlayResultDetails`. Make `PlayResult` reuse `PlayResultDetails`
+      too, and repoint that component's hardcoded light-theme colors (`#fafafa`/`#fff`/`#272822`)
+      onto `--v-theme-*` tokens so it works in dark mode.
 - [ ] Delete scaffolding: `WelcomeItem.vue`, `components/icons/*`, `Basic.vue`.
 - [ ] Remove dead/commented code (e.g., bottom ~40 lines of `PlayerSelector.vue`).
 - [ ] Switch to per-component Vuetify imports via `vite-plugin-vuetify` for smaller bundles
