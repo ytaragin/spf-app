@@ -205,7 +205,7 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 - [x] Rework `GameLayout.vue` from two even columns into a wide centered play-flow column +
       a thin sticky side rail (field + play history).
 - [ ] Add a `v-progress-linear`-style yardage/field-position bar.
-- [ ] Standardize `players/*` stat cards on a shared `v-table`/`v-chip` layout via a single
+- [~] Standardize `players/*` stat cards on a shared `v-table`/`v-chip` layout via a single
       `PlayerStatCard` wrapper.
 - [ ] De-duplicate play-detail rendering: `PlayResult.vue` hand-rolls the details/new-state/
       mechanics/cards markup inline (which has diverged from `PlayResultDetails.vue`), while
@@ -241,6 +241,23 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 > Deliberately kept a first draft — open knobs for later iteration: exact rail width, a max-width
 > cap to keep the main column from over-stretching on very wide monitors, field-vs-history order
 > in the rail, and the sticky `top` offset.
+>
+> `PlayerStatCard` wrapper (step 1 of 2 for the stat-card task): added
+> `src/components/players/PlayerStatCard.vue` — a shared `v-card` frame (consistent title via
+> `v-card-title`, optional `subtitle`, `density="compact"`, min/max-width so cards fit the narrow
+> `PlayerRecord` hover menu, and a default slot for the existing stat markup). All 11 position
+> cards (`RB, QB, TE, WR, OL, K, LB, DL, DB, KR, Plain`) were repointed onto it: the loose
+> bare-text position labels (`QB`/`K`/`OL`/`DB`/`DL`/`LB`) and KR's bespoke `.kr-title` moved into
+> the wrapper `title`; `RB`/`WR`/`TE`, which had no title at all, gained one; `Plain` now renders a
+> consistent muted "No player" frame (and was converted from Options API to `<script setup>`).
+> `KR.vue`'s hardcoded light-theme hex (`#f5f5f5`/`#1976d2`/`#333`/`#fff3cd`/`#f8d7da`/…) was
+> repointed onto `--v-theme-*` tokens (label=`primary`, asterisk=`warning`, fumble=`error`), so it
+> no longer breaks in dark mode. The inner stat components (`SingleStat`/`TripleStat`/`RangedStat`/
+> `NumberedStat` and KR's `<table>`) were intentionally left unchanged — they just moved into the
+> slot. Kept as `[~]`: **step 2** — converting those inner stat components to `v-table`/`v-chip`
+> (and deciding exactly where `v-chip` vs `v-table` applies) is the remaining follow-up. Pre-existing
+> `vue/multi-word-component-names` lint errors on `K.vue`/`Plain.vue` were left as-is (out of scope;
+> renaming ripples into `PlayerRecord.vue`'s component map).
 
 ---
 

@@ -1,34 +1,32 @@
 <template>
-  <div>
-    <v-card>
-      QB
-      <SingleStat name="Endurance" :val="player.endurance" />
+  <PlayerStatCard title="QB">
+    <SingleStat name="Endurance" :val="player.endurance" />
 
-      <v-container>
-        <v-row>
-          <v-col>
-            <RangedStat title="Quick" :labels="passLabels" :stats="player.quick.stats" />
-            <RangedStat title="Short" :labels="passLabels" :stats="player.short.stats" />
-            <RangedStat title="Long" :labels="passLabels" :stats="player.long.stats" />
-          </v-col>
-          <v-col>
-            <NumberedStat title="Rushing" :values="player.rushing.stats" />
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <RangedStat title="Pass Rush" :labels="rushLabels" :stats="player.pass_rush.stats" />
-          </v-col>
-          <v-col>
-            <SingleStat name="Endurance Rushing" :val="player.endurance_rushing" />
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-card>
-  </div>
+    <v-container>
+      <v-row>
+        <v-col>
+          <RangedStat title="Quick" :labels="passLabels" :stats="player.quick.stats" />
+          <RangedStat title="Short" :labels="passLabels" :stats="player.short.stats" />
+          <RangedStat title="Long" :labels="passLabels" :stats="player.long.stats" />
+        </v-col>
+        <v-col>
+          <NumberedStat title="Rushing" :values="player.rushing.stats" />
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
+          <RangedStat title="Pass Rush" :labels="rushLabels" :stats="player.pass_rush.stats" />
+        </v-col>
+        <v-col>
+          <SingleStat name="Endurance Rushing" :val="player.endurance_rushing" />
+        </v-col>
+      </v-row>
+    </v-container>
+  </PlayerStatCard>
 </template>
 
 <script setup>
+import PlayerStatCard from './PlayerStatCard.vue'
 import RangedStat from './RangedStat.vue'
 import SingleStat from './SingleStat.vue'
 import NumberedStat from './NumberedStat.vue'

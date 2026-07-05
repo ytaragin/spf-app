@@ -1,49 +1,43 @@
 <template>
-  <div>
-    <v-card>
-      <div class="kr-title">KR - Kick Return Unit</div>
-      <v-container>
-        <!-- Returner Names List -->
-        <div class="returners-list">
-          <div v-for="(returner, index) in processedReturners" :key="index" class="returner-row">
-            <span class="returner-label">KR-{{ index + 1 }}:</span>
-            <span class="returner-name">{{ returner.displayName }}</span>
-          </div>
-        </div>
+  <PlayerStatCard title="KR" subtitle="Kick Return Unit">
+    <!-- Returner Names List -->
+    <div class="returners-list">
+      <div v-for="(returner, index) in processedReturners" :key="index" class="returner-row">
+        <span class="returner-label">KR-{{ index + 1 }}:</span>
+        <span class="returner-name">{{ returner.displayName }}</span>
+      </div>
+    </div>
 
-        <!-- Return Stats Table -->
-        <div class="return-stats">
-          <div class="stattitle">Return Stats</div>
-          <table class="stats-table">
-            <thead>
-              <tr>
-                <th>Roll</th>
-                <th v-for="(returner, index) in processedReturners" :key="index">
-                  KR-{{ index + 1 }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="rollIndex in maxStatsLength" :key="rollIndex">
-                <td>{{ rollIndex }}</td>
-                <td
-                  v-for="(returner, returnerIndex) in processedReturners"
-                  :key="returnerIndex"
-                  :class="getStatClass(returner, rollIndex - 1)"
-                >
-                  {{ formatStatValue(returner, rollIndex - 1) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </v-container>
-    </v-card>
-  </div>
+    <!-- Return Stats Table -->
+    <div class="return-stats">
+      <div class="stattitle">Return Stats</div>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Roll</th>
+            <th v-for="(returner, index) in processedReturners" :key="index">KR-{{ index + 1 }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="rollIndex in maxStatsLength" :key="rollIndex">
+            <td>{{ rollIndex }}</td>
+            <td
+              v-for="(returner, returnerIndex) in processedReturners"
+              :key="returnerIndex"
+              :class="getStatClass(returner, rollIndex - 1)"
+            >
+              {{ formatStatValue(returner, rollIndex - 1) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </PlayerStatCard>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import PlayerStatCard from './PlayerStatCard.vue'
 
 const props = defineProps({
   player: {
@@ -112,17 +106,8 @@ const getStatClass = (returner, statIndex) => {
 </script>
 
 <style scoped>
-.kr-title {
-  font-weight: bold;
-  font-size: 1.2em;
-  padding: 16px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #ddd;
-}
-
 .returners-list {
   margin-bottom: 24px;
-  padding: 16px;
 }
 
 .returner-row {
@@ -130,19 +115,19 @@ const getStatClass = (returner, statIndex) => {
   align-items: center;
   margin-bottom: 8px;
   padding: 8px;
-  background-color: #f8f9fa;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
   border-radius: 4px;
 }
 
 .returner-label {
   font-weight: bold;
-  color: #1976d2;
+  color: rgb(var(--v-theme-primary));
   margin-right: 8px;
   min-width: 50px;
 }
 
 .returner-name {
-  color: #333;
+  color: rgba(var(--v-theme-on-surface), 0.87);
 }
 
 .return-stats {
@@ -152,7 +137,7 @@ const getStatClass = (returner, statIndex) => {
 .stattitle {
   font-weight: bold;
   margin-bottom: 12px;
-  color: #333;
+  color: rgba(var(--v-theme-on-surface), 0.87);
   font-size: 1.1em;
 }
 
@@ -166,28 +151,28 @@ const getStatClass = (returner, statIndex) => {
 .stats-table td {
   padding: 8px 12px;
   text-align: center;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 .stats-table th {
-  background-color: #f8f9fa;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
   font-weight: bold;
-  color: #333;
+  color: rgba(var(--v-theme-on-surface), 0.87);
 }
 
 .stats-table td {
-  background-color: white;
+  background-color: rgb(var(--v-theme-surface));
 }
 
 .asterisk-cell {
-  background-color: #fff3cd;
+  background-color: rgba(var(--v-theme-warning), 0.2);
 }
 
 .fumble-cell {
-  background-color: #f8d7da;
+  background-color: rgba(var(--v-theme-error), 0.2);
 }
 
 .asterisk-cell.fumble-cell {
-  background-color: #f5c6cb;
+  background-color: rgba(var(--v-theme-error), 0.3);
 }
 </style>

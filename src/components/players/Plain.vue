@@ -1,7 +1,9 @@
 <template>
-  <div>Plain</div>
+  <PlayerStatCard>
+    <div class="text-medium-emphasis">No player</div>
+  </PlayerStatCard>
 </template>
 
-<script>
-export default {}
+<script setup>
+import PlayerStatCard from './PlayerStatCard.vue'
 </script>
