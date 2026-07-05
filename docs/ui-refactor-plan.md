@@ -202,6 +202,8 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 
 - [x] Make `FootballField.vue` responsive: aspect-ratio/SVG or `%`-based instead of fixed
       600x300 with inline styles; drive markers from props.
+- [x] Rework `GameLayout.vue` from two even columns into a wide centered play-flow column +
+      a thin sticky side rail (field + play history).
 - [ ] Add a `v-progress-linear`-style yardage/field-position bar.
 - [ ] Standardize `players/*` stat cards on a shared `v-table`/`v-chip` layout via a single
       `PlayerStatCard` wrapper.
@@ -221,6 +223,19 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 > CSS. Dropped the now-unused `fieldWidth`/`fieldHeight` pixel props (the only caller,
 > `GameLayout.vue`, used the defaults) in favor of an optional `maxWidth` cap; `ballPosition` and
 > `firstDownTarget` props are unchanged.
+>
+> `GameLayout.vue` layout rework (first draft, commit `7162bf2`): the two even `md=6` columns
+> (field+history | play flow) were replaced by an asymmetric split — a wide **main column**
+> (`md=8`/`lg=9`) carrying the play flow (PlayTypeSelector -> PlayLineup -> Run Play -> PlayResult),
+> and a **thin right rail** (`md=4`/`lg=3`) holding the `FootballField` above `PlayHistory`. The
+> goal was to make the lineup/play flow the visual centerpiece with room to breathe; the field is
+> demoted to a supporting glanceable role in the rail (which the responsive-field work above made
+> possible). The rail is `position: sticky` on `md+` (`top: 80px` to clear the app bar) so it
+> stays in view while working the lineup; on mobile the columns stack (main first, then rail).
+> This resolves the "parked layout decision" referenced in Phase 2's demoted `v-stepper` task.
+> Deliberately kept a first draft — open knobs for later iteration: exact rail width, a max-width
+> cap to keep the main column from over-stretching on very wide monitors, field-vs-history order
+> in the rail, and the sticky `top` offset.
 
 ---
 
