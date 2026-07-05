@@ -5,17 +5,22 @@
       <template v-if="!inPlace">
         <v-menu open-on-hover location="end">
           <template v-slot:activator="{ props }">
-            <!-- <div @mouseover="props.open">Hover me</div> -->
-            <PlayerName v-bind="props" :name="playerName" :team="playerTeam" />
-            {{ recpos }}
+            <!-- Bind the menu activator props onto a real DOM element (span)
+                 rather than the PlayerName component. Newer Vuetify 3.x needs
+                 the activator listeners/ref on an element; forwarding them
+                 through a plain component silently breaks the hover. -->
+            <span v-bind="props" class="player-record-activator">
+              <PlayerName :name="playerName" :team="playerTeam" />
+              {{ recpos }}
+            </span>
           </template>
-          <component :is="recpos" :player="playerRec"></component>
+          <component :is="recposComponent" :player="playerRec"></component>
         </v-menu>
       </template>
       <template v-else>
-        <PlayerName v-bind="props" :name="playerName" :team="playerTeam" />
+        <PlayerName :name="playerName" :team="playerTeam" />
         {{ recpos }}
-        <component :is="recpos" :player="playerRec"></component>
+        <component :is="recposComponent" :player="playerRec"></component>
       </template>
     </div>
   </v-sheet>
@@ -45,6 +50,13 @@ const props = defineProps({
   inPlace: Boolean
 })
 
+// Map position strings to their component objects. `<component :is="...">`
+// must receive an actual component (not a bare string), otherwise Vue tries
+// to resolve the string as a globally-registered component. Since these are
+// imported locally in <script setup>, a string like 'RB' resolves to nothing
+// and the hover menu renders empty. Resolving to the object fixes that.
+const positionComponents = { RB, QB, TE, WR, OL, K, LB, DL, DB, KR, Plain }
+
 const teamStore = useTeamsStore()
 const { playerPositions } = storeToRefs(teamStore)
 const gamesStore = useGameStore()
@@ -53,6 +65,9 @@ const recpos = ref('Plain')
 const playerName = ref('-')
 const playerTeam = ref({ name: '-', year: '-' })
 const emptyPlayer = { position: 'Plain', name: '-', team: { name: '-', year: '-' } }
+
+// Resolve the position string to its component object for `<component :is>`.
+const recposComponent = computed(() => positionComponents[recpos.value] || Plain)
 
 function getPlayerRecord(boxName) {
   let rec = null
@@ -92,5 +107,10 @@ watch(
   border: 1px solid #ccc;
   padding: 10px;
   margin: 5px;
+}
+
+.player-record-activator {
+  display: inline-block;
+  cursor: help;
 }
 </style>
