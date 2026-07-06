@@ -1,21 +1,11 @@
 <template>
   <PlayerStatCard title="K">
-    <v-container>
-      <v-row>
-        <v-col cols="8">
-          <SingleStat name="Extra Points" :val="player.extra_points" />
-          <SingleStat name="Longest FG" :val="player.longest_fg" />
-          <SingleStat name="Over Fifty" :val="player.over_fifty" />
-        </v-col>
-        <v-col cols="4">
-          <RangedStat
-            title="Field Goals"
-            :labels="fieldGoalLabels"
-            :stats="player.field_goals.stats"
-          />
-        </v-col>
-      </v-row>
-    </v-container>
+    <div class="d-flex flex-wrap ga-1 mb-2">
+      <SingleStat name="Extra Points" :val="player.extra_points" />
+      <SingleStat name="Longest FG" :val="player.longest_fg" />
+      <SingleStat name="Over Fifty" :val="player.over_fifty" />
+    </div>
+    <RangedStat title="Field Goals" :labels="fieldGoalLabels" :stats="player.field_goals.stats" />
   </PlayerStatCard>
 </template>
 

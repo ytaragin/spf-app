@@ -11,16 +11,16 @@
     <!-- Return Stats Table -->
     <div class="return-stats">
       <div class="stattitle">Return Stats</div>
-      <table class="stats-table">
+      <v-table density="compact" class="stats-table">
         <thead>
           <tr>
-            <th>Roll</th>
+            <th class="roll-col">Roll</th>
             <th v-for="(returner, index) in processedReturners" :key="index">KR-{{ index + 1 }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="rollIndex in maxStatsLength" :key="rollIndex">
-            <td>{{ rollIndex }}</td>
+            <td class="roll-col">{{ rollIndex }}</td>
             <td
               v-for="(returner, returnerIndex) in processedReturners"
               :key="returnerIndex"
@@ -30,7 +30,7 @@
             </td>
           </tr>
         </tbody>
-      </table>
+      </v-table>
     </div>
   </PlayerStatCard>
 </template>
@@ -143,36 +143,33 @@ const getStatClass = (returner, statIndex) => {
 
 .stats-table {
   width: 100%;
-  border-collapse: collapse;
   font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
 }
 
-.stats-table th,
-.stats-table td {
-  padding: 8px 12px;
+.stats-table :deep(th),
+.stats-table :deep(td) {
   text-align: center;
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
-.stats-table th {
-  background-color: rgba(var(--v-theme-on-surface), 0.04);
+.stats-table :deep(th) {
   font-weight: bold;
-  color: rgba(var(--v-theme-on-surface), 0.87);
 }
 
-.stats-table td {
-  background-color: rgb(var(--v-theme-surface));
+.roll-col {
+  font-weight: 700;
 }
 
-.asterisk-cell {
-  background-color: rgba(var(--v-theme-warning), 0.2);
+/* Tint classes must override Vuetify's default td background, hence !important. */
+.stats-table :deep(td.asterisk-cell) {
+  background-color: rgba(var(--v-theme-warning), 0.2) !important;
 }
 
-.fumble-cell {
-  background-color: rgba(var(--v-theme-error), 0.2);
+.stats-table :deep(td.fumble-cell) {
+  background-color: rgba(var(--v-theme-error), 0.2) !important;
 }
 
-.asterisk-cell.fumble-cell {
-  background-color: rgba(var(--v-theme-error), 0.3);
+.stats-table :deep(td.asterisk-cell.fumble-cell) {
+  background-color: rgba(var(--v-theme-error), 0.3) !important;
 }
 </style>

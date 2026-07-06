@@ -1,13 +1,9 @@
 <template>
   <PlayerStatCard title="DL">
-    <v-container>
-      <v-row>
-        <v-col>
-          <SingleStat name="Pass Rush" :val="player.pass_rush" />
-          <SingleStat name="Tackles" :val="player.tackles" />
-        </v-col>
-      </v-row>
-    </v-container>
+    <div class="d-flex flex-wrap ga-1">
+      <SingleStat name="Pass Rush" :val="player.pass_rush" />
+      <SingleStat name="Tackles" :val="player.tackles" />
+    </div>
   </PlayerStatCard>
 </template>
 

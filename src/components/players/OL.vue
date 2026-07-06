@@ -1,7 +1,9 @@
 <template>
   <PlayerStatCard title="OL">
-    <SingleStat name="Blocks" :val="player.blocks" />
-    <SingleStat name="Pass Blocks" :val="player.pass_block" />
+    <div class="d-flex flex-wrap ga-1">
+      <SingleStat name="Blocks" :val="player.blocks" />
+      <SingleStat name="Pass Blocks" :val="player.pass_block" />
+    </div>
   </PlayerStatCard>
 </template>
 

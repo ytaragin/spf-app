@@ -1,8 +1,8 @@
 <template>
-  <div class="single-stat">
-    <div class="stat-name">{{ name }}:</div>
-    <div class="stat-val">{{ val }}</div>
-  </div>
+  <v-chip class="single-stat" size="small" variant="tonal" label>
+    <span class="stat-name">{{ name }}</span>
+    <span class="stat-val">{{ val }}</span>
+  </v-chip>
 </template>
 
 <script setup>
@@ -12,14 +12,15 @@ defineProps({
 })
 </script>
 
-<style>
+<style scoped>
+.single-stat {
+  margin: 2px;
+}
 .stat-name {
-  font-weight: bold;
+  font-weight: 700;
+  margin-right: 4px;
 }
 .stat-val {
-}
-
-.single-stat {
-  display: flex;
+  font-variant-numeric: tabular-nums;
 }
 </style>

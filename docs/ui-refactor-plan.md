@@ -205,7 +205,7 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 - [x] Rework `GameLayout.vue` from two even columns into a wide centered play-flow column +
       a thin sticky side rail (field + play history).
 - [ ] Add a `v-progress-linear`-style yardage/field-position bar.
-- [~] Standardize `players/*` stat cards on a shared `v-table`/`v-chip` layout via a single
+- [x] Standardize `players/*` stat cards on a shared `v-table`/`v-chip` layout via a single
       `PlayerStatCard` wrapper.
 - [ ] De-duplicate play-detail rendering: `PlayResult.vue` hand-rolls the details/new-state/
       mechanics/cards markup inline (which has diverged from `PlayResultDetails.vue`), while
@@ -258,6 +258,31 @@ Goal: make the centerpiece responsive and reduce duplication / dead code.
 > (and deciding exactly where `v-chip` vs `v-table` applies) is the remaining follow-up. Pre-existing
 > `vue/multi-word-component-names` lint errors on `K.vue`/`Plain.vue` were left as-is (out of scope;
 > renaming ripples into `PlayerRecord.vue`'s component map).
+>
+> Stat-card task **completed** (step 2 — `v-table`/`v-chip`): the four shared stat sub-components were
+> rewritten in place so every position card upgraded with no per-card logic change:
+> - `SingleStat` → a small tonal `v-chip` (bold label + value). Cards that render several scalars
+>   (RB/WR/TE/OL/DB/DL/LB/QB/K) wrap them in a `d-flex flex-wrap ga-1` chip row; DB/DL/LB dropped
+>   their now-pointless `v-container`/`v-row`/`v-col` split, and QB/K hoist their standalone scalars
+>   (endurance, extra points, …) into a chip row above the tables.
+> - `TripleStat` (RB/WR/TE rushing + pass_gain) → `v-table` (`density="compact"`). **Kept the joined
+>   `Q/S/L` single column and `Roll: a/b/c` row format to match the SPF paper sheet** (per request),
+>   rather than splitting into per-label columns. `getValue`/`formatStats` logic copied verbatim, so
+>   the edge cases hold: missing column → `-`, string cells (`"Lg"`/`"Sg"`) literal, `{Val:0}`/`-1`
+>   render as `0`/`-1`.
+> - `RangedStat` (QB quick/short/long/pass_rush, K field_goals) → 2-column `v-table` (outcome | dice
+>   range); missing range → `-`.
+> - `NumberedStat` (QB rushing) → 2-column `v-table` (roll | value); reuses the existing
+>   object/`Val` formatting.
+> - `KR` matrix → `v-table`; the asterisk/fumble markers stay as tinted cells (`warning`/`error`,
+>   already themed) plus the `*`/`f` glyphs and `SameAs`→`-` logic. `v-table` sets its own `td`
+>   background, so the tint classes are applied via `:deep(td.asterisk-cell)` etc. with `!important`
+>   to win precedence.
+>
+> Verified: `npm run build` passes; `eslint players/*.vue` shows only the 2 pre-existing
+> `multi-word-component-names` errors (unchanged). No committed sample data exists for KR/DB/DL/LB, so
+> those were validated against the reverse-engineered shapes from the component templates; the offense
+> cards were checked against the root `*.json` reference files.
 
 ---
 

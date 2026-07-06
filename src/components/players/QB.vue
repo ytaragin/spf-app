@@ -1,8 +1,11 @@
 <template>
   <PlayerStatCard title="QB">
-    <SingleStat name="Endurance" :val="player.endurance" />
+    <div class="d-flex flex-wrap ga-1 mb-2">
+      <SingleStat name="Endurance" :val="player.endurance" />
+      <SingleStat name="Endurance Rushing" :val="player.endurance_rushing" />
+    </div>
 
-    <v-container>
+    <v-container class="pa-0">
       <v-row>
         <v-col>
           <RangedStat title="Quick" :labels="passLabels" :stats="player.quick.stats" />
@@ -10,15 +13,8 @@
           <RangedStat title="Long" :labels="passLabels" :stats="player.long.stats" />
         </v-col>
         <v-col>
-          <NumberedStat title="Rushing" :values="player.rushing.stats" />
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
           <RangedStat title="Pass Rush" :labels="rushLabels" :stats="player.pass_rush.stats" />
-        </v-col>
-        <v-col>
-          <SingleStat name="Endurance Rushing" :val="player.endurance_rushing" />
+          <NumberedStat title="Rushing" :values="player.rushing.stats" />
         </v-col>
       </v-row>
     </v-container>
