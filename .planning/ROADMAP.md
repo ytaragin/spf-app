@@ -27,7 +27,8 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
   3. `npm run test:coverage` produces a report-only V8 coverage summary with `all: true` over `src/**` (no enforced threshold)
   4. A shared `test/setup.js` registers `createVuetify()` and jsdom shims (ResizeObserver, matchMedia, CSS.supports) and loads without error
   5. `npm` scripts exist for run-once, watch, coverage, and E2E entry points
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 01-01-PLAN.md — Vite 4→6 upgrade + Vitest/jsdom/coverage config + shared setup + proving test (FND-01..05)
 
 ### Phase 2: Domain Unit Tests
 **Goal**: The highest-value pure domain logic in `src/game/` is locked down by fast, mock-free unit tests.
