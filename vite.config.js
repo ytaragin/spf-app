@@ -21,6 +21,14 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./test/setup.js'],
     include: ['src/**/*.{test,spec}.{js,jsx}'],
+    server: {
+      deps: {
+        // Vuetify ships component CSS imports that Vitest cannot resolve when
+        // externalized; inlining lets Vitest transform them (needed by the
+        // createTestVuetify factory in test/setup.js).
+        inline: ['vuetify']
+      }
+    },
     coverage: {
       provider: 'v8',
       all: true,
