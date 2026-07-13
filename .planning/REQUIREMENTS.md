@@ -9,11 +9,11 @@ Requirements for the initial testing milestone. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FND-01**: Project builds and runs on an upgraded Vite version compatible with a maintained Vitest release (Vite 4 → 6 prerequisite), verified by `npm run build` and `npm run dev`
-- [ ] **FND-02**: Vitest is configured for the app, reusing the existing `@` → `src` alias and a DOM environment (jsdom/happy-dom) with globals enabled
-- [ ] **FND-03**: A shared test setup file registers Vuetify (`createVuetify()`) and provides required jsdom shims (ResizeObserver, matchMedia, CSS.supports)
-- [ ] **FND-04**: Coverage reporting is available via `@vitest/coverage-v8` with `all: true` (report-only, no enforced threshold)
-- [ ] **FND-05**: `npm` scripts exist to run tests once, in watch mode, with coverage, and to run E2E tests
+- [x] **FND-01**: Project builds and runs on an upgraded Vite version compatible with a maintained Vitest release (Vite 4 → 6 prerequisite), verified by `npm run build` and `npm run dev`
+- [x] **FND-02**: Vitest is configured for the app, reusing the existing `@` → `src` alias and a DOM environment (jsdom/happy-dom) with globals enabled
+- [x] **FND-03**: A shared test setup file registers Vuetify (`createVuetify()`) and provides required jsdom shims (ResizeObserver, matchMedia, CSS.supports)
+- [x] **FND-04**: Coverage reporting is available via `@vitest/coverage-v8` with `all: true` (report-only, no enforced threshold)
+- [x] **FND-05**: `npm` scripts exist to run tests once, in watch mode, with coverage, and to run E2E tests
 
 ### Domain Unit Tests
 
@@ -75,11 +75,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 1 | Pending |
-| FND-02 | Phase 1 | Pending |
-| FND-03 | Phase 1 | Pending |
-| FND-04 | Phase 1 | Pending |
-| FND-05 | Phase 1 | Pending |
+| FND-01 | Phase 1 | Complete |
+| FND-02 | Phase 1 | Complete |
+| FND-03 | Phase 1 | Complete |
+| FND-04 | Phase 1 | Complete |
+| FND-05 | Phase 1 | Complete |
 | DOM-01 | Phase 2 | Pending |
 | DOM-02 | Phase 2 | Pending |
 | DOM-03 | Phase 2 | Pending |
@@ -96,6 +96,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-04 | Phase 5 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 19 total
 - Mapped to phases: 19 ✓
 - Unmapped: 0
