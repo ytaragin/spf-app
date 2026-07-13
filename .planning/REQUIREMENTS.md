@@ -75,30 +75,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | TBD | Pending |
-| FND-02 | TBD | Pending |
-| FND-03 | TBD | Pending |
-| FND-04 | TBD | Pending |
-| FND-05 | TBD | Pending |
-| DOM-01 | TBD | Pending |
-| DOM-02 | TBD | Pending |
-| DOM-03 | TBD | Pending |
-| STO-01 | TBD | Pending |
-| STO-02 | TBD | Pending |
-| STO-03 | TBD | Pending |
-| STO-04 | TBD | Pending |
-| CMP-01 | TBD | Pending |
-| CMP-02 | TBD | Pending |
-| CMP-03 | TBD | Pending |
-| E2E-01 | TBD | Pending |
-| E2E-02 | TBD | Pending |
-| E2E-03 | TBD | Pending |
-| E2E-04 | TBD | Pending |
+| FND-01 | Phase 1 | Pending |
+| FND-02 | Phase 1 | Pending |
+| FND-03 | Phase 1 | Pending |
+| FND-04 | Phase 1 | Pending |
+| FND-05 | Phase 1 | Pending |
+| DOM-01 | Phase 2 | Pending |
+| DOM-02 | Phase 2 | Pending |
+| DOM-03 | Phase 2 | Pending |
+| STO-01 | Phase 3 | Pending |
+| STO-02 | Phase 3 | Pending |
+| STO-03 | Phase 3 | Pending |
+| STO-04 | Phase 3 | Pending |
+| CMP-01 | Phase 4 | Pending |
+| CMP-02 | Phase 4 | Pending |
+| CMP-03 | Phase 4 | Pending |
+| E2E-01 | Phase 5 | Pending |
+| E2E-02 | Phase 5 | Pending |
+| E2E-03 | Phase 5 | Pending |
+| E2E-04 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 19 total
-- Mapped to phases: 0 (roadmap will map)
-- Unmapped: 19 ⚠️ (resolved during roadmap creation)
+- Mapped to phases: 19 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-13*
