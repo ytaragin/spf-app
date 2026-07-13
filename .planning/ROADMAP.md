@@ -100,7 +100,7 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Test Foundation | 1/1 | Complete   | 2026-07-13 |
+| 1. Test Foundation | 1/1 | Complete    | 2026-07-13 |
 | 2. Domain Unit Tests | 0/? | Not started | - |
 | 3. Store Unit Tests | 0/? | Not started | - |
 | 4. Component Tests | 0/? | Not started | - |
