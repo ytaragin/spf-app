@@ -53,6 +53,10 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
 - [ ] 02-02-PLAN.md — SPFMetadata.test.js + ISSUES.md tech-debt doc (DOM-02)
 - [ ] 02-03-PLAN.md — TeamData.test.js happy-path roster coverage (DOM-03)
 
+**Cross-cutting constraints:**
+
+- The domain suite runs with no mocks and no test-setup dependency
+
 ### Phase 3: Store Unit Tests
 
 **Goal**: Pinia stores are tested with fresh state and mocked axios, covering both success and error UX, backed by reusable fixtures.
