@@ -47,9 +47,9 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
   3. `TeamData.js` roster model (assign/reset/availability) is tested and pass green
   4. The domain suite runs with no mocks and no test-setup dependency, proving the runner independent of DOM infra
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
-- [ ] 02-01-PLAN.md — Expand playOutcome.test.js with full function coverage (DOM-01)
+- [x] 02-01-PLAN.md — Expand playOutcome.test.js with full function coverage (DOM-01)
 - [ ] 02-02-PLAN.md — SPFMetadata.test.js + ISSUES.md tech-debt doc (DOM-02)
 - [ ] 02-03-PLAN.md — TeamData.test.js happy-path roster coverage (DOM-03)
 
@@ -109,7 +109,7 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Test Foundation | 1/1 | Complete    | 2026-07-13 |
-| 2. Domain Unit Tests | 0/3 | Not started | - |
+| 2. Domain Unit Tests | 1/3 | In Progress|  |
 | 3. Store Unit Tests | 0/? | Not started | - |
 | 4. Component Tests | 0/? | Not started | - |
 | 5. End-to-End Tests | 0/? | Not started | - |
