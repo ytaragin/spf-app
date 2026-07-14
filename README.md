@@ -33,4 +33,38 @@ npm run build
 ```sh
 npm run lint
 ```
+
+## Testing
+
+Unit and component tests use [Vitest](https://vitest.dev/) + [`@vue/test-utils`](https://test-utils.vuejs.org/). End-to-end tests use [Playwright](https://playwright.dev/).
+
+### Run all tests once
+
+```sh
+npm test
+```
+
+### Run tests in watch mode
+
+```sh
+npm run test:watch
+```
+
+### Run tests with coverage
+
+```sh
+npm run test:coverage
+```
+
+### Run a single test file
+
+```sh
+npx vitest run src/game/playOutcome.test.js
+```
+
+### Filter tests by name
+
+```sh
+npx vitest run -t "outcomeColor"
+```
 # spf-app
