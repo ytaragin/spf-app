@@ -19,7 +19,7 @@ Requirements for the initial testing milestone. Each maps to roadmap phases.
 
 - [x] **DOM-01**: `src/game/playOutcome.js` pure functions are unit-tested (classify/color/summary/turnover/possession logic), no mocking
 - [x] **DOM-02**: `src/game/SPFMetadata.js` box↔position mapping and label helpers are unit-tested
-- [ ] **DOM-03**: `src/game/TeamData.js` roster model (assign/reset/availability) is unit-tested
+- [x] **DOM-03**: `src/game/TeamData.js` roster model (assign/reset/availability) is unit-tested
 
 ### Store Unit Tests
 
@@ -82,7 +82,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FND-05 | Phase 1 | Complete |
 | DOM-01 | Phase 2 | Complete |
 | DOM-02 | Phase 2 | Complete |
-| DOM-03 | Phase 2 | Pending |
+| DOM-03 | Phase 2 | Complete |
 | STO-01 | Phase 3 | Pending |
 | STO-02 | Phase 3 | Pending |
 | STO-03 | Phase 3 | Pending |

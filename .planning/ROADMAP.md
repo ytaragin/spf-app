@@ -9,7 +9,7 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
 ## Phases
 
 - [x] **Phase 1: Test Foundation** - Upgrade Vite 4→6, install and configure Vitest + coverage + shared setup, prove with one trivial test (completed 2026-07-13)
-- [ ] **Phase 2: Domain Unit Tests** - Unit-test pure `src/game/` logic (playOutcome, SPFMetadata, TeamData) with zero mocking
+- [x] **Phase 2: Domain Unit Tests** - Unit-test pure `src/game/` logic (playOutcome, SPFMetadata, TeamData) with zero mocking (completed 2026-07-14)
 - [ ] **Phase 3: Store Unit Tests** - Test Pinia stores with fresh Pinia + mocked axios + error branches, establish shared factories
 - [ ] **Phase 4: Component Tests** - Mount key SFCs with Vuetify + jsdom shims + seeded Pinia
 - [ ] **Phase 5: End-to-End Tests** - Playwright hermetic play-flow (mock default) + env-gated real-backend toggle
@@ -47,11 +47,11 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
   3. `TeamData.js` roster model (assign/reset/availability) is tested and pass green
   4. The domain suite runs with no mocks and no test-setup dependency, proving the runner independent of DOM infra
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 - [x] 02-01-PLAN.md — Expand playOutcome.test.js with full function coverage (DOM-01)
 - [x] 02-02-PLAN.md — SPFMetadata.test.js + ISSUES.md tech-debt doc (DOM-02)
-- [ ] 02-03-PLAN.md — TeamData.test.js happy-path roster coverage (DOM-03)
+- [x] 02-03-PLAN.md — TeamData.test.js happy-path roster coverage (DOM-03)
 
 **Cross-cutting constraints:**
 
