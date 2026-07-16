@@ -71,7 +71,11 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
   4. Shared game-state/player factories exist in `test/factories/` and are consumed by the store suite
   5. The store suite passes run-together and in randomized order (no Pinia state leakage)
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+- [ ] 03-01-PLAN.md — Shared test factories (buildGameState/buildLineup/buildPlayer/buildRoster) + smoke test (STO-04)
+- [ ] 03-02-PLAN.md — gameStore suite: play-flow success + exhaustive error branches + finally resets (STO-01, STO-02)
+- [ ] 03-03-PLAN.md — teamStore suite: fetchPlayers + selectPlayer/removePlayer + managed-team toggle (STO-03)
 
 ### Phase 4: Component Tests
 
