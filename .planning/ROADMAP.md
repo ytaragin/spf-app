@@ -71,15 +71,15 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
   4. Shared game-state/player factories exist in `test/factories/` and are consumed by the store suite
   5. The store suite passes run-together and in randomized order (no Pinia state leakage)
 
-**Plans**: 3 plans
+**Plans**: 3/3 plans executed
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Shared test factories (buildGameState/buildLineup/buildPlayer/buildRoster) + smoke test (STO-04)
+- [x] 03-01-PLAN.md — Shared test factories (buildGameState/buildLineup/buildPlayer/buildRoster) + smoke test (STO-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — gameStore suite: play-flow success + exhaustive error branches + finally resets (STO-01, STO-02)
-- [ ] 03-03-PLAN.md — teamStore suite: fetchPlayers + selectPlayer/removePlayer + managed-team toggle (STO-03)
+- [x] 03-02-PLAN.md — gameStore suite: play-flow success + exhaustive error branches + finally resets (STO-01, STO-02)
+- [x] 03-03-PLAN.md — teamStore suite: fetchPlayers + selectPlayer/removePlayer + managed-team toggle (STO-03)
 
 ### Phase 4: Component Tests
 
@@ -118,7 +118,7 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
 |-------|----------------|--------|-----------|
 | 1. Test Foundation | 1/1 | Complete    | 2026-07-13 |
 | 2. Domain Unit Tests | 2/3 | In Progress|  |
-| 3. Store Unit Tests | 0/? | Not started | - |
+| 3. Store Unit Tests | 3/3 | In Progress|  |
 | 4. Component Tests | 0/? | Not started | - |
 | 5. End-to-End Tests | 0/? | Not started | - |
 

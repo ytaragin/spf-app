@@ -23,10 +23,10 @@ Requirements for the initial testing milestone. Each maps to roadmap phases.
 
 ### Store Unit Tests
 
-- [ ] **STO-01**: `gameStore` play-flow actions are tested with a fresh Pinia per test and mocked axios (setPlayType, setLineup, setOffensivePlay/DefensivePlay, runPlay)
-- [ ] **STO-02**: `gameStore` error-handling branches set `error` and reset loading flags on failed API calls
-- [ ] **STO-03**: `teamStore` player/lineup logic (fetchPlayers, selectPlayer, managed-team toggle) is tested with mocked axios
-- [ ] **STO-04**: Reusable game-state/player test fixtures/factories exist and are shared across store, component, and E2E-mock tests
+- [x] **STO-01**: `gameStore` play-flow actions are tested with a fresh Pinia per test and mocked axios (setPlayType, setLineup, setOffensivePlay/DefensivePlay, runPlay)
+- [x] **STO-02**: `gameStore` error-handling branches set `error` and reset loading flags on failed API calls
+- [x] **STO-03**: `teamStore` player/lineup logic (fetchPlayers, selectPlayer, managed-team toggle) is tested with mocked axios
+- [x] **STO-04**: Reusable game-state/player test fixtures/factories exist and are shared across store, component, and E2E-mock tests
 
 ### Component Tests
 
@@ -83,10 +83,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOM-01 | Phase 2 | Complete |
 | DOM-02 | Phase 2 | Complete |
 | DOM-03 | Phase 2 | Complete |
-| STO-01 | Phase 3 | Pending |
-| STO-02 | Phase 3 | Pending |
-| STO-03 | Phase 3 | Pending |
-| STO-04 | Phase 3 | Pending |
+| STO-01 | Phase 3 | Complete |
+| STO-02 | Phase 3 | Complete |
+| STO-03 | Phase 3 | Complete |
+| STO-04 | Phase 3 | Complete |
 | CMP-01 | Phase 4 | Pending |
 | CMP-02 | Phase 4 | Pending |
 | CMP-03 | Phase 4 | Pending |
