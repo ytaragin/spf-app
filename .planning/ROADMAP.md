@@ -72,8 +72,12 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
   5. The store suite passes run-together and in randomized order (no Pinia state leakage)
 
 **Plans**: 3 plans
+**Wave 1**
 
 - [ ] 03-01-PLAN.md — Shared test factories (buildGameState/buildLineup/buildPlayer/buildRoster) + smoke test (STO-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 03-02-PLAN.md — gameStore suite: play-flow success + exhaustive error branches + finally resets (STO-01, STO-02)
 - [ ] 03-03-PLAN.md — teamStore suite: fetchPlayers + selectPlayer/removePlayer + managed-team toggle (STO-03)
 
