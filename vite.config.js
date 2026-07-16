@@ -20,7 +20,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./test/setup.js'],
-    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    include: ['src/**/*.{test,spec}.{js,jsx}', 'test/**/*.{test,spec}.{js,jsx}'],
     server: {
       deps: {
         // Vuetify ships component CSS imports that Vitest cannot resolve when
