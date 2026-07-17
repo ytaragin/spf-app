@@ -18,6 +18,7 @@ A trustworthy, fast local test suite that gives developers confidence to change 
 - ✓ Domain layer: `SPFMetadata`, `TeamData`, `playOutcome` pure JS in `src/game/` — existing
 - ✓ Backend-authoritative play flow: type → lineup → run → result via axios REST calls — existing
 - ✓ Static quality gates: `npm run lint` (ESLint) and `npm run format` (Prettier) — existing
+- ✓ Unit tests for Pinia stores (`gameStore`, `teamStore`) with mocked axios, covering error branches — Validated in Phase 3: Store Unit Tests (86 tests passing; reusable factories in `test/factories/`)
 
 ### Active
 
@@ -25,7 +26,6 @@ A trustworthy, fast local test suite that gives developers confidence to change 
 
 - [ ] Vitest test runner configured for the Vite + Vue 3 stack (reusing the `@` → `src` alias, jsdom environment)
 - [ ] Unit tests for the domain layer (`src/game/` pure functions) — highest-value priority target
-- [ ] Unit tests for Pinia stores (`gameStore`, `teamStore`) with mocked axios, covering error branches
 - [ ] Component tests for key Vue SFCs via `@vue/test-utils` + jsdom + Vuetify
 - [ ] Playwright E2E for core user flows, supporting both mocked-API (hermetic, default) and real-backend runs
 - [ ] Coverage reporting via `@vitest/coverage-v8` (report-only, no enforced threshold)
@@ -41,7 +41,7 @@ A trustworthy, fast local test suite that gives developers confidence to change 
 
 ## Context
 
-- **Current test state:** zero automated tests — no runner, no config, no `test` script, no CI (per `.planning/codebase/TESTING.md`).
+- **Current test state:** Phase 3 complete — 86 passing tests across domain (`src/game/`), gameStore, and teamStore suites, plus reusable factories in `test/factories/`. No CI yet (per `.planning/codebase/TESTING.md`, still local-only).
 - **Stack:** Vite + Vue 3 (Composition API, `<script setup>`), Vuetify, Pinia (setup stores), axios, vue-router.
 - **Idiomatic choice:** Vitest (shares Vite's transform pipeline) + `@vue/test-utils` + jsdom; Playwright for E2E.
 - **Prioritized test targets** (from codebase map): (1) `src/game/playOutcome.js` — pure, no mocking; (2) `src/stores/gameStore.js` — mock axios + fresh Pinia per test; (3) components — need Vuetify plugin + jsdom.
@@ -83,4 +83,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-13 after initialization*
+*Last updated: 2026-07-17 after Phase 3 (Store Unit Tests) completion*
