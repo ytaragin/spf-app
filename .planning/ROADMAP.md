@@ -115,7 +115,10 @@ Plans:
   3. Hermetic mocks return full-shape `new_state` payloads and use web-first assertions / `waitForResponse` (no hard waits)
   4. A single `E2E_MODE`/env switch (with `VITE_API_BASE_URL`) toggles the suite to run against a real backend, mocked mode being the default
 
-**Plans**: TBD
+**Plans**: 1/1 plans
+
+- [ ] 05-01-PLAN.md — Playwright install/config (webServer + mocked/live projects) + full-shape fixtures + hermetic two-play E2E spec (E2E-01, E2E-02, E2E-03, E2E-04)
+
 
 ## Progress
 
