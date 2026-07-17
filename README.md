@@ -67,4 +67,49 @@ npx vitest run src/game/playOutcome.test.js
 ```sh
 npx vitest run -t "outcomeColor"
 ```
-# spf-app
+
+## End-to-End Tests
+
+E2E tests use [Playwright](https://playwright.dev/) and live in `e2e/`. The Vite dev server is started automatically (via Playwright's `webServer` config), so you don't need to run `npm run dev` yourself first.
+
+### One-time setup
+
+Install the Playwright browser binaries (only needed once, or after upgrading `@playwright/test`):
+
+```sh
+npx playwright install chromium
+```
+
+### Run the hermetic (mocked) suite — default, no backend required
+
+All network calls are intercepted with `page.route()` mocks, so this runs with zero real backend dependency:
+
+```sh
+npm run test:e2e
+```
+
+This is equivalent to:
+
+```sh
+npx playwright test --project=mocked
+```
+
+### Run against a real backend
+
+Requires a running backend reachable at `VITE_API_BASE_URL` (see `.env` / `.env.development`). This runs the same spec with no mocks installed:
+
+```sh
+npx playwright test --project=live
+```
+
+### List tests without running them
+
+```sh
+npx playwright test --list
+```
+
+### Run E2E tests in UI mode (interactive debugging)
+
+```sh
+npx playwright test --ui
+```
