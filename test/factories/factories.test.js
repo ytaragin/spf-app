@@ -31,6 +31,7 @@ describe('buildLineup', () => {
   it('returns a lineup object', () => {
     expect(typeof buildLineup()).toBe('object')
     expect(buildLineup().QB).toBe('QB-1')
+    expect(buildLineup().WR).toEqual(['WR-1', 'WR-2'])
   })
 
   it('merges overrides into the lineup', () => {

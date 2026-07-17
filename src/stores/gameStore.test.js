@@ -19,6 +19,9 @@ describe('gameStore success paths', () => {
       const lineup = buildLineup()
       await store.setLineup(lineup, false)
       expect(store.gameMsg).toBe('lineup ok')
+      // getPlayer reads through the internal lineups ref (not directly exposed),
+      // so this proves setLineup actually populated lineups.offense.
+      expect(store.getPlayer('QB')).toBe('QB-1')
       expect(store.isSubmittingLineup).toBe(false)
     })
   })
@@ -30,6 +33,9 @@ describe('gameStore success paths', () => {
       const store = useGameStore()
       await store.getLineup(false)
       expect(store.gameMsg).toBe('+++')
+      // getPlayer reads through the internal lineups ref (not directly exposed),
+      // so this proves getLineup actually populated lineups.offense.
+      expect(store.getPlayer('QB')).toBe('QB-1')
     })
   })
 

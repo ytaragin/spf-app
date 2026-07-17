@@ -13,15 +13,22 @@ beforeEach(() => {
 
 describe('fetchPlayers', () => {
   it('fetches both teams, increments version, and re-points the active team ref', async () => {
+    // Away roster uses distinguishable ids so a broken re-point (team.value not
+    // updated to the Home roster) would be caught rather than silently matching
+    // the pre-existing default seed (QB-1/RB-1).
     axios.get
-      .mockResolvedValueOnce({ data: buildRoster() })
-      .mockResolvedValueOnce({ data: buildRoster() })
+      .mockResolvedValueOnce({
+        data: buildRoster({ players: { 'AW-1': { name: 'Away', id: 'AW-1', position: 'WR' } } })
+      })
+      .mockResolvedValueOnce({
+        data: buildRoster({ players: { 'HM-1': { name: 'Home', id: 'HM-1', position: 'QB' } } })
+      })
     const store = useTeamsStore()
     const startVersion = store.version
     await store.fetchPlayers()
     expect(store.isLoading).toBe(false)
     expect(store.version).toBe(startVersion + 1)
-    expect(store.availablePlayerIDs).toEqual(expect.arrayContaining(['QB-1', 'RB-1']))
+    expect(store.availablePlayerIDs).toEqual(['HM-1'])
   })
 
   it('err.response branch is swallowed and resets isLoading', async () => {
@@ -84,13 +91,27 @@ describe('selectPlayer / removePlayer', () => {
 describe('toggleManagedTeam', () => {
   it('flips the managed team and re-points the active team ref', () => {
     const store = useTeamsStore()
-    store.setTeam(buildRoster({ team: { name: 'Homers' } }), 'Home')
-    store.setTeam(buildRoster({ team: { name: 'Awayers' } }), 'Away')
+    store.setTeam(
+      buildRoster({
+        team: { name: 'Homers' },
+        players: { 'H-1': { name: 'H', id: 'H-1', position: 'QB' } }
+      }),
+      'Home'
+    )
+    store.setTeam(
+      buildRoster({
+        team: { name: 'Awayers' },
+        players: { 'A-1': { name: 'A', id: 'A-1', position: 'QB' } }
+      }),
+      'Away'
+    )
     const before = store.getManagedTeam()
     store.toggleManagedTeam()
     const after = store.getManagedTeam()
     expect(after).not.toBe(before)
     expect(store.homeTeam).toBe('Homers')
     expect(store.awayTeam).toBe('Awayers')
+    // team.value must now point at the newly-managed (Away) roster, not Home.
+    expect(store.availablePlayerIDs).toEqual(['A-1'])
   })
 })
