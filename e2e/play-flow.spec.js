@@ -64,20 +64,22 @@ test('completes two chained plays end to end', async ({ page }) => {
 
   // --- Play 1 ---
   await page.getByRole('button', { name: 'Submit Lineup' }).click()
-  await expect(page.getByText('Lineup set')).toBeVisible()
+  // "Lineup set" renders once per PlayLineup instance (offense + defense),
+  // so scope the assertion to the first confirmation chip to stay unambiguous.
+  await expect(page.getByText('Lineup set').first()).toBeVisible()
 
   const runPlayButton = page.getByRole('button', { name: 'Run Play' })
   await expect(runPlayButton).toBeEnabled()
   await runPlayButton.click()
   await page.waitForResponse((resp) => resp.url().includes('/game/plays') && resp.status() === 200)
-  await expect(page.getByText(/Second/)).toBeVisible()
+  await expect(page.getByText('Down: Second')).toBeVisible()
 
   // --- Play 2: prove state continuity across chained plays (D-03) ---
   await page.getByRole('button', { name: 'Submit Lineup' }).click()
-  await expect(page.getByText('Lineup set')).toBeVisible()
+  await expect(page.getByText('Lineup set').first()).toBeVisible()
 
   await expect(runPlayButton).toBeEnabled()
   await runPlayButton.click()
   await page.waitForResponse((resp) => resp.url().includes('/game/plays') && resp.status() === 200)
-  await expect(page.getByText(/Third/)).toBeVisible()
+  await expect(page.getByText('Down: Third')).toBeVisible()
 })
