@@ -93,10 +93,11 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
   3. Components mount cleanly with the Vuetify plugin and jsdom shims — no unresolved-component or missing-global failures
   4. Component tests reuse the shared factories from Phase 3 for seed data
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 04-01-PLAN.md — PlayResult.vue outcome-branch + empty-state component tests (CMP-01, CMP-03)
+
+- [x] 04-01-PLAN.md — PlayResult.vue outcome-branch + empty-state component tests (CMP-01, CMP-03)
 - [ ] 04-02-PLAN.md — PlayTypeSelector.vue fetch + click-dispatch component tests (CMP-02, CMP-03)
 
 **UI hint**: yes
@@ -123,7 +124,7 @@ Plans:
 | 1. Test Foundation | 1/1 | Complete    | 2026-07-13 |
 | 2. Domain Unit Tests | 2/3 | In Progress|  |
 | 3. Store Unit Tests | 3/3 | Complete    | 2026-07-17 |
-| 4. Component Tests | 0/2 | Not started | - |
+| 4. Component Tests | 1/2 | In Progress|  |
 | 5. End-to-End Tests | 0/? | Not started | - |
 
 ---
