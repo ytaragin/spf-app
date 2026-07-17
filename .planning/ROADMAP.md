@@ -119,7 +119,6 @@ Plans:
 
 - [ ] 05-01-PLAN.md — Playwright install/config (webServer + mocked/live projects) + full-shape fixtures + hermetic two-play E2E spec (E2E-01, E2E-02, E2E-03, E2E-04)
 
-
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
