@@ -1,3 +1,4 @@
+/* eslint-env node */
 import { defineConfig } from '@playwright/test'
 
 // https://playwright.dev/docs/test-configuration
