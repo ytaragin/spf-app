@@ -12,7 +12,7 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
 - [x] **Phase 2: Domain Unit Tests** - Unit-test pure `src/game/` logic (playOutcome, SPFMetadata, TeamData) with zero mocking (completed 2026-07-14)
 - [x] **Phase 3: Store Unit Tests** - Test Pinia stores with fresh Pinia + mocked axios + error branches, establish shared factories (completed 2026-07-17)
 - [ ] **Phase 4: Component Tests** - Mount key SFCs with Vuetify + jsdom shims + seeded Pinia
-- [ ] **Phase 5: End-to-End Tests** - Playwright hermetic play-flow (mock default) + env-gated real-backend toggle
+- [x] **Phase 5: End-to-End Tests** - Playwright hermetic play-flow (mock default) + env-gated real-backend toggle (completed 2026-07-17)
 
 ## Phase Details
 
@@ -115,9 +115,9 @@ Plans:
   3. Hermetic mocks return full-shape `new_state` payloads and use web-first assertions / `waitForResponse` (no hard waits)
   4. A single `E2E_MODE`/env switch (with `VITE_API_BASE_URL`) toggles the suite to run against a real backend, mocked mode being the default
 
-**Plans**: 1/1 plans
+**Plans**: 1/1 plans complete
 
-- [ ] 05-01-PLAN.md — Playwright install/config (webServer + mocked/live projects) + full-shape fixtures + hermetic two-play E2E spec (E2E-01, E2E-02, E2E-03, E2E-04)
+- [x] 05-01-PLAN.md — Playwright install/config (webServer + mocked/live projects) + full-shape fixtures + hermetic two-play E2E spec (E2E-01, E2E-02, E2E-03, E2E-04)
 
 ## Progress
 
@@ -127,7 +127,7 @@ Plans:
 | 2. Domain Unit Tests | 2/3 | In Progress|  |
 | 3. Store Unit Tests | 3/3 | Complete    | 2026-07-17 |
 | 4. Component Tests | 2/2 | In Progress|  |
-| 5. End-to-End Tests | 0/? | Not started | - |
+| 5. End-to-End Tests | 1/1 | Complete   | 2026-07-17 |
 
 ---
 *Roadmap created: 2026-07-13*

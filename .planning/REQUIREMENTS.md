@@ -36,10 +36,10 @@ Requirements for the initial testing milestone. Each maps to roadmap phases.
 
 ### End-to-End Tests
 
-- [ ] **E2E-01**: Playwright is configured with a `webServer` that starts the Vite app for tests
-- [ ] **E2E-02**: A core play flow (start game → pick type → assign lineup → run play → see result) is covered by a hermetic E2E test using route mocking (default, no backend required)
-- [ ] **E2E-03**: E2E hermetic mocks return full-shape `new_state` payloads and use web-first assertions / `waitForResponse` (no hard waits)
-- [ ] **E2E-04**: E2E can toggle to run against a real backend via an env var + `VITE_API_BASE_URL` (mocked mode is the default)
+- [x] **E2E-01**: Playwright is configured with a `webServer` that starts the Vite app for tests
+- [x] **E2E-02**: A core play flow (start game → pick type → assign lineup → run play → see result) is covered by a hermetic E2E test using route mocking (default, no backend required)
+- [x] **E2E-03**: E2E hermetic mocks return full-shape `new_state` payloads and use web-first assertions / `waitForResponse` (no hard waits)
+- [x] **E2E-04**: E2E can toggle to run against a real backend via an env var + `VITE_API_BASE_URL` (mocked mode is the default)
 
 ## v2 Requirements
 
@@ -90,10 +90,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CMP-01 | Phase 4 | Complete |
 | CMP-02 | Phase 4 | Complete |
 | CMP-03 | Phase 4 | Complete |
-| E2E-01 | Phase 5 | Pending |
-| E2E-02 | Phase 5 | Pending |
-| E2E-03 | Phase 5 | Pending |
-| E2E-04 | Phase 5 | Pending |
+| E2E-01 | Phase 5 | Complete |
+| E2E-02 | Phase 5 | Complete |
+| E2E-03 | Phase 5 | Complete |
+| E2E-04 | Phase 5 | Complete |
 
 **Coverage:**
 

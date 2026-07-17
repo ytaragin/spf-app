@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 4
-status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-07-17T14:00:53.149Z"
+current_phase: 5
+status: complete
+stopped_at: Phase 5 Plan 01 executed
+last_updated: "2026-07-17T00:00:00.000Z"
 last_activity: 2026-07-17
-last_activity_desc: Phase 4 marked complete
+last_activity_desc: Phase 5 Plan 01 (Playwright e2e play-flow) complete
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-current_phase_name: Component Tests
+  completed_phases: 5
+  total_plans: 10
+  completed_plans: 10
+  percent: 100
+current_phase_name: End-to-End Tests
 ---
 
 # Project State
@@ -27,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-13)
 
 ## Current Position
 
-Phase: 4 — COMPLETE
+Phase: 5 — COMPLETE
 Plan: 01 complete
-Status: Ready to execute
-Last activity: 2026-07-17 — Phase 4 marked complete
+Status: Complete
+Last activity: 2026-07-17 — Phase 5 Plan 01 (Playwright e2e play-flow) complete
 
 Progress: [██████████] 100%
 
@@ -69,6 +70,7 @@ Recent decisions affecting current work:
 
 - [Phase 1]: Upgrade Vite 4→6 (+ Vue plugins) as a hard prerequisite before installing any test tooling — no maintained Vitest supports Vite 4.
 - [Setup]: Two-runner architecture — Vitest for in-process unit/store/component, Playwright for E2E; they share only the app, never a config.
+- [Phase 5]: `mocked`/`live` Playwright projects share the same baseURL; project selection (not a custom env var) is the mocked-vs-real-backend switch (D-05/D-06/D-07).
 
 ### Pending Todos
 
@@ -77,7 +79,8 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 1]: Confirm devcontainer Node version during planning (Vite 6 needs `^18||^20||>=22`; expected Node 20).
-- [Phase 5]: E2E mock payloads must return full-shape `new_state` validated against a real backend to avoid `undefined`-render false failures.
+- [Phase 5]: E2E mock payloads must return full-shape `new_state` validated against a real backend to avoid `undefined`-render false failures — RESOLVED: fixtures in e2e/fixtures/playFlowMocks.js carry all nine gameState fields.
+- [Phase 5]: `npx playwright install chromium` (one-time browser download) and `--project=live` (requires a real running backend) are manual/follow-up steps not run as part of automated verification.
 
 ## Deferred Items
 
@@ -89,6 +92,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-17T13:51:36.329Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-end-to-end-tests/05-CONTEXT.md
+Last session: 2026-07-17T00:00:00.000Z
+Stopped at: Phase 5 Plan 01 executed
+Resume file: .planning/phases/05-end-to-end-tests/05-01-SUMMARY.md
