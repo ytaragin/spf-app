@@ -31,7 +31,7 @@ Requirements for the initial testing milestone. Each maps to roadmap phases.
 ### Component Tests
 
 - [x] **CMP-01**: `PlayResult.vue` renders outcome color/icon/label correctly from store/props via `@vue/test-utils` + Vuetify
-- [ ] **CMP-02**: At least one interaction/flow component (e.g. `GameLayout.vue` or a play selector) is tested with seeded Pinia state
+- [x] **CMP-02**: At least one interaction/flow component (e.g. `GameLayout.vue` or a play selector) is tested with seeded Pinia state
 - [x] **CMP-03**: Component tests mount successfully with the Vuetify plugin and jsdom shims (no unresolved-component or missing-global failures)
 
 ### End-to-End Tests
@@ -88,7 +88,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STO-03 | Phase 3 | Complete |
 | STO-04 | Phase 3 | Complete |
 | CMP-01 | Phase 4 | Complete |
-| CMP-02 | Phase 4 | Pending |
+| CMP-02 | Phase 4 | Complete |
 | CMP-03 | Phase 4 | Complete |
 | E2E-01 | Phase 5 | Pending |
 | E2E-02 | Phase 5 | Pending |
