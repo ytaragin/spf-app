@@ -22,6 +22,7 @@
     "vuetify": "^3.6.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@rushstack/eslint-patch": "^1.3.2",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitejs/plugin-vue-jsx": "^4.2.0",
