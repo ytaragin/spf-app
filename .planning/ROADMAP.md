@@ -60,7 +60,6 @@ This roadmap follows a strict dependency cone: foundation → domain → store �
 ### Phase 3: Store Unit Tests
 
 **Goal**: Pinia stores are tested with fresh state and mocked axios, covering both success and error UX, backed by reusable fixtures.
-**Mode:** mvp
 **Depends on**: Phase 2
 **Requirements**: STO-01, STO-02, STO-03, STO-04
 **Success Criteria** (what must be TRUE):
