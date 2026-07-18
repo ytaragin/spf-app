@@ -30,11 +30,33 @@ A trustworthy, fast local test suite that gives developers confidence to change 
 - ✓ Component tests (`PlayResult.vue`, `PlayTypeSelector.vue`) via `@vue/test-utils` + real Vuetify/Pinia — v1.0
 - ✓ Playwright E2E of the core play flow — hermetic route-mocked default + opt-in real-backend mode — v1.0
 
+## Current Milestone: v1.1 Realtime
+
+**Goal:** The web app subscribes to server-side game events over a read-only WebSocket (`GET /game/ws`) so the UI updates whenever anything changes on the server — especially the opponent's actions — while all client operations continue over REST.
+
+**Target features:**
+- WebSocket client that connects per-game and consumes the tagged event envelope `{ event, data }`
+- Handle 5 event variants → apply to Pinia state: `GameStarted` (state), `OffensiveLineupSet` (lineup), `DefensiveLineupSet` (lineup), `NextPlayTypeSet` (play_type), `PlayRun` (full `PlayAndState` = result + resulting `GameState`)
+- REST actions keep optimistic apply; WS events also apply, made safe by idempotent state application (re-applying the same state is a no-op)
+- Auto-reconnect with backoff; on reconnect, resync via `GET /state`
+- Visible connection-status indicator (live / reconnecting / disconnected)
+- Unit/store tests with a mocked socket + Playwright E2E driving a mock WS server
+
+**Key context:**
+- Read-only socket — no client→server WS commands; operations stay on REST
+- WS envelope is tagged `{ event, data }`; REST bodies are bare — the WS handler must unwrap; `PlayRun` is a superset of REST /play (carries the resulting `GameState`, which REST /play does not)
+- Backend-authoritative model preserved; WS is an additional inbound state channel
+
 ### Active
 
-<!-- Next milestone. Hypotheses until shipped and validated. -->
+<!-- v1.1 Realtime. Hypotheses until shipped and validated. -->
 
-- [ ] (Defined in next milestone via `/gsd-new-milestone`)
+- [ ] Read-only WebSocket client connects to `GET /game/ws` per active game (derived ws:// URL) with a visible connection-status indicator
+- [ ] All 5 tagged event variants are parsed from the `{ event, data }` envelope and dispatched to Pinia state
+- [ ] `PlayRun` events apply the full resulting `GameState` from the WS payload (the opponent's new state)
+- [ ] WS-applied state is idempotent so it coexists with REST optimistic apply without double-application artifacts
+- [ ] Connection drops auto-reconnect with backoff and resync current state via `GET /state`
+- [ ] WebSocket layer is covered by unit/store tests (mocked socket) and a Playwright E2E against a mock WS server
 
 ### Out of Scope
 
@@ -43,6 +65,8 @@ A trustworthy, fast local test suite that gives developers confidence to change 
 - **Exhaustive coverage of every function/component** — target is infra + meaningful coverage of priority targets, not 100%.
 - **Backend test suite** — the REST backend is a separate concern; only the client app is in scope.
 - **Refactoring existing app code** (e.g. extracting an `src/api/` client) — noted as tech debt but not part of this milestone; tests target current code as-is.
+- **Client→server WebSocket commands** — the `/game/ws` socket is read-only (server→client); all operations remain REST. (v1.1)
+- **WS-driven optimistic-apply removal** — REST actions keep their own optimistic apply; WS is an additive inbound channel, not a rewrite of the write path. (v1.1)
 
 ## Context
 
@@ -88,4 +112,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-17 after v1.0 (Automated Testing) milestone*
+*Last updated: 2026-07-18 — v1.1 Realtime milestone started*
