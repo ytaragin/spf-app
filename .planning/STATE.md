@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Realtime
-status: planning
-last_updated: "2026-07-18T20:54:47.207Z"
-last_activity: 2026-07-18
+status: roadmap-complete
+last_updated: "2026-07-19T00:00:00.000Z"
+last_activity: 2026-07-19
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,43 +17,39 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-13)
+See: .planning/PROJECT.md (updated 2026-07-18)
 
-**Core value:** A trustworthy, fast local test suite that gives developers confidence to change the app without breaking existing gameplay.
-**Current focus:** Phase 03 — store-unit-tests
+**Core value:** The UI reflects server-side game events — especially the opponent's actions — in real time over a read-only WebSocket, while all client operations continue over REST and the backend-authoritative model is preserved.
+**Current focus:** Phase 6 — Pure Foundations (WS URL + envelope parsing)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap complete, ready to plan Phase 6)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-18 — Milestone v1.1 started
+Status: Roadmap complete
+Last activity: 2026-07-19 — v1.1 roadmap created (6 phases, 14 requirements mapped)
+
+## Roadmap Summary
+
+v1.1 phases continue numbering from v1.0 (ended at Phase 5):
+
+- Phase 6: Pure Foundations — WS URL + Envelope Parsing (WS-01, EVT-01)
+- Phase 7: Monotonic Reducer (KEYSTONE) (STA-01, STA-02, RTT-01)
+- Phase 8: Event Dispatch Glue (EVT-02, EVT-03)
+- Phase 9: useGameSocket Composable (WS-02, WS-03, WS-04, RTT-02)
+- Phase 10: Connection Status Indicator (CON-01, CON-02)
+- Phase 11: Realtime E2E (RTT-03)
+
+**Keystone gate:** The monotonic reducer (Phase 7) must land before any WS code writes `gameState`.
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 4
+- Total plans completed (v1.0): 10
 - Average duration: — min
-- Total execution time: 0.0 hours
 
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01 | 1 | - | - |
-| 03 | 3 | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
-
-*Updated after each plan completion*
-| Phase 01 P01 | 3 | 3 tasks | 5 files |
-| Phase 02 P01 | 15 | 1 tasks | 1 files |
-| Phase 02 P02 | 12min | 2 tasks | 2 files |
-| Phase 02 P03 | 8min | 1 tasks | 1 files |
+*Reset for v1.1; updated after each plan completion.*
 
 ## Accumulated Context
 
@@ -62,9 +58,9 @@ Last activity: 2026-07-18 — Milestone v1.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Phase 1]: Upgrade Vite 4→6 (+ Vue plugins) as a hard prerequisite before installing any test tooling — no maintained Vitest supports Vite 4.
-- [Setup]: Two-runner architecture — Vitest for in-process unit/store/component, Playwright for E2E; they share only the app, never a config.
-- [Phase 5]: `mocked`/`live` Playwright projects share the same baseURL; project selection (not a custom env var) is the mocked-vs-real-backend switch (D-05/D-06/D-07).
+- [Research]: Add exactly one runtime dependency — `@vueuse/core` (`useWebSocket`) — for reactive status + capped exponential backoff; native `WebSocket` is the zero-dep fallback. Avoid `socket.io-client` / `reconnecting-websocket`.
+- [Research/KEYSTONE]: Idempotency alone is unsafe against stale-but-different states. Extract a single shared monotonic `applyGameState`/`applyPlayResult` reducer gated on `play_counter`; both REST and WS funnel through it. `fetchPlayResult` already half-built this guard (~lines 273–288).
+- [Research]: Testing reuses existing toolchain — `vi.stubGlobal('WebSocket', FakeWebSocket)` + fake timers for unit/store; Playwright `page.routeWebSocket()` (≥1.48, installed 1.61.1) for E2E.
 
 ### Pending Todos
 
@@ -72,24 +68,28 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 1]: Confirm devcontainer Node version during planning (Vite 6 needs `^18||^20||>=22`; expected Node 20).
-- [Phase 5]: E2E mock payloads must return full-shape `new_state` validated against a real backend to avoid `undefined`-render false failures — RESOLVED: fixtures in e2e/fixtures/playFlowMocks.js carry all nine gameState fields.
-- [Phase 5]: `npx playwright install chromium` (one-time browser download) and `--project=live` (requires a real running backend) are manual/follow-up steps not run as part of automated verification.
+Open gaps to resolve during phase discussion (from research SUMMARY.md — don't block roadmap, shape Phases 6–9):
+
+- [Phase 6/9]: Exact `ws://` path / game-id scoping for `GET /game/ws` — is game id in path/query? Affects `toWebSocketUrl` + per-game lifecycle.
+- [Phase 9]: Does `GET /state` return `play_counter`? The resync race guard depends on it; if absent, fall back to "cannot order → resync wins once."
+- [Phase 6/8]: Exact per-variant `data` field shapes (GameState vs lineup vs play_type vs PlayAndState) — needed to finalize dispatch mapping + per-variant tests.
+- [Phase 9]: Does the WS handshake share REST auth? (cookie/session vs token-in-query; browsers can't set WS headers.)
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
-
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| Realtime Polish | RTP-01 origin-filtered opponent-action toasts | Deferred | v1.1 scope |
+| Realtime Polish | RTP-02 heartbeat/liveness detection | Deferred | v1.1 scope |
+| CI | CI-01/02/03 GitHub Actions | Deferred | from v1.0 |
+| Coverage | COV-01 enforced thresholds | Deferred | from v1.0 |
 
 ## Session Continuity
 
-Last session: 2026-07-17T00:00:00.000Z
-Stopped at: Phase 5 Plan 01 executed
-Resume file: .planning/phases/05-end-to-end-tests/05-01-SUMMARY.md
+Last session: 2026-07-19T00:00:00.000Z
+Stopped at: v1.1 roadmap created
+Resume file: .planning/ROADMAP.md
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first phase with `/gsd-plan-phase 6`

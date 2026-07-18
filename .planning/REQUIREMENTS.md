@@ -66,29 +66,29 @@ Explicitly excluded for v1.1.
 
 ## Traceability
 
-Filled during roadmap creation.
+Filled during roadmap creation (2026-07-19).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WS-01 | TBD | Pending |
-| WS-02 | TBD | Pending |
-| WS-03 | TBD | Pending |
-| WS-04 | TBD | Pending |
-| EVT-01 | TBD | Pending |
-| EVT-02 | TBD | Pending |
-| EVT-03 | TBD | Pending |
-| STA-01 | TBD | Pending |
-| STA-02 | TBD | Pending |
-| CON-01 | TBD | Pending |
-| CON-02 | TBD | Pending |
-| RTT-01 | TBD | Pending |
-| RTT-02 | TBD | Pending |
-| RTT-03 | TBD | Pending |
+| WS-01 | Phase 6 | Pending |
+| WS-02 | Phase 9 | Pending |
+| WS-03 | Phase 9 | Pending |
+| WS-04 | Phase 9 | Pending |
+| EVT-01 | Phase 6 | Pending |
+| EVT-02 | Phase 8 | Pending |
+| EVT-03 | Phase 8 | Pending |
+| STA-01 | Phase 7 | Pending |
+| STA-02 | Phase 7 | Pending |
+| CON-01 | Phase 10 | Pending |
+| CON-02 | Phase 10 | Pending |
+| RTT-01 | Phase 7 | Pending |
+| RTT-02 | Phase 9 | Pending |
+| RTT-03 | Phase 11 | Pending |
 
 **Coverage:**
 
 - v1.1 requirements: 14 total
-- Mapped to phases: 0 (roadmap pending)
+- Mapped to phases: 14 (100%) ✓ — no orphans
 
 ---
 *Requirements defined: 2026-07-18*
