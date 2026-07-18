@@ -1,24 +1,14 @@
 # Stack Research
 
-**Domain:** Automated testing for a Vue 3 + Vite + Pinia + Vuetify SPA (unit / store / component / E2E)
-**Researched:** 2026-07-13
-**Confidence:** HIGH (all versions and peer constraints verified against the live npm registry)
+**Domain:** Read-only browser WebSocket channel for an existing Vue 3 + Pinia + Vite SPA (v1.1 Realtime)
+**Researched:** 2026-07-18
+**Confidence:** HIGH
 
-## TL;DR (read this first)
+> Scope: ONLY the additive WebSocket capability. The REST/axios/Vitest/Playwright stack is already validated and is **not** re-researched here. Verified package versions live-queried from npm; API surfaces verified against official VueUse and Playwright docs (2026-07).
 
-The idiomatic 2025/2026 stack is **Vitest + @vue/test-utils + happy-dom + @vitest/coverage-v8** for unit/store/component, and **@playwright/test** for E2E. That part is uncontroversial.
+## Recommendation at a glance
 
-**The one real decision this project must make: the current Vite `^4.4.6` is too old for any currently-maintained Vitest.** Verified peer/dependency constraints:
-
-| Vitest major | Bundled `vite` dependency | Supports Vite 4? |
-|--------------|---------------------------|------------------|
-| 4.x (latest, 4.1.10) | `^6 \|\| ^7 \|\| ^8` | ❌ |
-| 3.x (3.2.7) | `^5 \|\| ^6 \|\| ^7` | ❌ |
-| 2.x (2.1.9) | `^5` | ❌ |
-| 1.x (1.6.1) | `^5` | ❌ |
-| 0.34.x (EOL) | `^3 \|\| ^4 \|\| ^5` | ✅ (but ancient, do not use) |
-
-**Prescription: upgrade Vite 4 → 6 as a prerequisite, then install Vitest 4.** This is a small, safe bump (Vite 6 keeps Node ^18/^20/>=22 support, matching the Node 20 devcontainer) and unblocks the entire modern test toolchain. Do NOT pin to an EOL Vitest 0.34 to preserve Vite 4 — that trades a 30-minute upgrade for a permanently dead dependency.
+**Add exactly one runtime dependency: `@vueuse/core@^14.3.0`, and consume the WebSocket via its `useWebSocket` composable inside a thin `src/composables/useGameSocket.js` wrapper.** Do **not** hand-roll a raw `WebSocket` + reconnection loop, and do **not** add `socket.io-client` or `reconnecting-websocket`. Test with a hand-rolled mock-socket class in Vitest (jsdom) and Playwright's first-class `page.routeWebSocket()` for E2E. All required capabilities (auto-reconnect with exponential backoff, buffered lifecycle, reactive `status`/`data`, clean teardown on scope dispose) already ship in these tools at the versions the repo runs.
 
 ## Recommended Stack
 
@@ -26,267 +16,89 @@ The idiomatic 2025/2026 stack is **Vitest + @vue/test-utils + happy-dom + @vites
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `vitest` | `^4.1.10` | Test runner for unit, store, and component tests | Reuses the project's Vite config/transform pipeline (same `esbuild`, same `resolve.alias`, same plugins) so `<script setup>` SFCs and the `@`→`src` alias "just work". The default choice for Vue 3 + Vite in 2025/2026. |
-| `@vue/test-utils` | `^2.4.11` | Mount/interact with Vue 3 components in tests | Official Vue component testing library; `mount`/`shallowMount` with `global.plugins` is exactly the seam needed to register Vuetify + Pinia. `2.x` is the Vue 3 line. |
-| `happy-dom` | `^20.10.6` | DOM environment for component tests | Faster and lighter than jsdom for typical component tests, and (unlike jsdom 29) has no Node ≥20.19 floor. Set `environment: 'happy-dom'` in Vitest. See jsdom fallback note below. |
-| `@vitest/coverage-v8` | `^4.1.10` | Coverage reporting (report-only) | V8 native coverage — no instrumentation overhead, matches the project's "report-only, no threshold" requirement. Version is lockstep-pinned to Vitest (peer `vitest: 4.1.10`), so keep them on the same version. |
-| `@playwright/test` | `^1.61.1` | End-to-end browser testing (mocked + real backend) | Modern default for new Vue/Vite projects: fast, parallel, auto-wait, trace viewer, and first-class request interception via `page.route()` for the hermetic mocked-API mode. Node ≥18. |
+| `@vueuse/core` (`useWebSocket`) | `^14.3.0` | Reactive WebSocket client: `status`/`data` refs, `open`/`close`, auto-reconnect w/ backoff, lifecycle callbacks, scope-dispose cleanup | Idiomatic Vue 3 Composition-API primitive; battle-tested; wraps the native `WebSocket` (no socket.io framing) so it speaks a **plain** server WS. Gives reconnection + reactive status for free — precisely the milestone's needs — without owning fragile reconnect code. Latest release 3 weeks old; actively maintained. |
+| Native browser `WebSocket` API | built-in | Underlying transport (used *by* `useWebSocket`) | The server is a plain read-only WS (`GET /game/ws`), not socket.io. The native API is the correct wire protocol; VueUse only adds ergonomics on top. |
+| Thin project composable `useGameSocket.js` | n/a (app code) | Derive `ws(s)://` URL from `VITE_API_BASE_URL`, unwrap the `{ event, data }` envelope, dispatch each of the 5 variants into the Pinia `gameStore`, expose connection status | Keeps envelope-parsing and store-dispatch logic testable in isolation and out of components — mirrors the existing `src/game/` "pure logic extracted from components" convention. |
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `jsdom` | `^26.1.0` | Alternative DOM environment | Fallback if a Vuetify component behaves differently under happy-dom (rare, but Vuetify's measurement/`ResizeObserver` code occasionally needs jsdom fidelity). Use `26.x` not `29.x` to stay on Node ≥18 (jsdom 29 requires Node ≥20.19). |
-| `@vitest/ui` | `^4.1.10` | Browser UI for the test runner | Optional DX nicety for watch-mode; pinned lockstep to Vitest. Skip if you only run headless. |
-| `@pinia/testing` | `^1.0.2` | `createTestingPinia()` for component tests | Use in **component** tests to auto-mock store actions and set initial state. NOT needed for pure store unit tests (use real `createPinia()` + `vi.mock('axios')` there). |
+| *(none required)* | — | — | The capability needs **zero** additional runtime libs beyond `@vueuse/core`. Deliberately minimal. |
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| Vitest globals | Avoid importing `describe/it/expect` in every file | Set `test.globals: true`; the existing `TESTING.md` examples assume this. |
-| Playwright `webServer` | Auto-start Vite dev server for E2E | Configure `webServer.command: 'npm run dev'` + `reuseExistingServer` so `playwright test` boots the app itself. |
+| Vitest `^3.2.7` (already installed) | Unit/store tests with a mocked socket | jsdom does **not** implement `WebSocket`. Provide a small fake `WebSocket` class and assign `globalThis.WebSocket = FakeWebSocket` (or `vi.stubGlobal('WebSocket', FakeWebSocket)`). Drive `onopen`/`onmessage`/`onclose` manually to simulate envelopes and disconnects. Fake advertised via `readyState` constants (`CONNECTING=0`, `OPEN=1`…). Prefer testing your `useGameSocket` envelope→store mapping directly (feed it envelopes) over asserting VueUse internals. |
+| `@playwright/test` `^1.61.1` (already installed) | E2E against a mock WS server | Use `page.routeWebSocket(url, ws => …)` — Playwright's native WebSocket mocking, added in **1.48** and fully available in 1.61.1. Intercepts the browser's real `WebSocket` in-page, letting the test act as the server: `ws.onMessage(...)`, `ws.send(JSON.stringify({ event, data }))`, and `ws.close()` to exercise reconnect + status indicator. No separate mock WS server process needed. |
+| `vi.useFakeTimers()` | Deterministic backoff testing | Reconnect delays are timer-driven; fake timers let store tests assert backoff without real waits. |
 
-## Prerequisite Upgrade (do this before installing test deps)
-
-```bash
-# Bump Vite 4 -> 6 and matching Vue plugins (verified peer: vite ^5||^6||^7)
-npm install -D vite@^6.4.3 @vitejs/plugin-vue@^6.0.7 @vitejs/plugin-vue-jsx@^5.1.6
-```
-
-- Vite 6 engines: Node `^18 || ^20 || >=22` — matches the Node 20 devcontainer with no Node bump required.
-- Vite 7 is also viable but requires Node `^20.19 || >=22.12`; only choose it if the devcontainer Node is pinned ≥20.19. **Vite 6 is the safer target for a plain `:20` image.**
-- After the bump, verify the app still builds/dev-runs (`npm run build`, `npm run dev`) before adding tests. This is the only change to app tooling; no source refactor.
-
-## Installation (test stack)
+## Installation
 
 ```bash
-# Unit / store / component
-npm install -D vitest@^4.1.10 @vue/test-utils@^2.4.11 happy-dom@^20.10.6 @vitest/coverage-v8@^4.1.10
+# Core (the only new runtime dependency)
+npm install @vueuse/core@^14.3.0
 
-# Component-test store helper (optional but recommended)
-npm install -D @pinia/testing@^1.0.2
+# Supporting: none
 
-# E2E (installs the runner; then download browsers)
-npm install -D @playwright/test@^1.61.1
-npx playwright install chromium
-
-# Optional jsdom fallback env + runner UI
-npm install -D jsdom@^26.1.0 @vitest/ui@^4.1.10
+# Dev dependencies: none — Vitest 3.2.7 and Playwright 1.61.1 already installed
 ```
 
-Suggested `package.json` scripts:
+## Key integration points
 
-```json
-"test": "vitest run",
-"test:watch": "vitest",
-"test:coverage": "vitest run --coverage",
-"test:e2e": "playwright test",
-"test:e2e:real": "PW_MODE=real playwright test"
-```
+**Pinia (setup stores):** Call `useGameStore()` inside `useGameSocket()` and dispatch envelopes to store actions. Because the app is backend-authoritative and REST already applies state optimistically, the WS handler must apply the **same** state idempotently (re-applying an identical `GameState` is a no-op). Add small store actions like `applyRemoteState(state)` / `applyRemoteLineup(...)` so both REST and WS paths funnel through one wholesale-replace of `gameState` (consistent with the existing "always overwrite `gameState` from server `new_state`" pattern). `PlayRun` carries a full `PlayAndState`, so apply its resulting `GameState` the same way.
 
-## Configuration Snippets
+**URL derivation:** Derive the socket URL from `VITE_API_BASE_URL` by swapping `http→ws`/`https→wss`. Guard for a missing env value (existing code already treats an absent base URL as a silent failure mode).
 
-### 1. Vitest config reusing the Vite `@`→`src` alias + DOM env
+**Reconnect + resync:** Use `useWebSocket`'s `autoReconnect` with exponential backoff (see Version Compatibility). On the `onConnected` callback (fired on every (re)connect), trigger a `GET /state` resync via the existing axios path so a reconnect re-establishes truth — matching the milestone requirement.
 
-Prefer a single `vite.config.js` with a `test` block (via the `vitest/config` `defineConfig`) so the alias/plugins are shared by construction — no duplication:
+**Lifecycle:** `useWebSocket` auto-closes on scope dispose, so calling `useGameSocket()` from the game view/layout ties socket teardown to navigation away from `/game` automatically.
 
-```js
-// vite.config.js
-import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vitest/config' // <- vitest/config, not 'vite'
-import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
-
-export default defineConfig({
-  plugins: [vue(), vueJsx()],
-  resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
-  },
-  test: {
-    environment: 'happy-dom', // 'jsdom' fallback if a Vuetify component needs it
-    globals: true,
-    setupFiles: ['./tests/setup.js'], // registers Vuetify globally (below)
-    // Keep Playwright's own specs out of Vitest's glob:
-    exclude: ['**/node_modules/**', '**/e2e/**'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html'],
-      // report-only: intentionally NO thresholds
-    },
-  },
-})
-```
-
-> If you prefer a separate `vitest.config.js`, use `mergeConfig(viteConfig, defineConfig({ test: {...} }))` to inherit the alias. The single-file approach above is simpler for this project.
-
-### 2. Register Vuetify (createVuetify) in component tests
-
-Vuetify components fail to resolve unless a `createVuetify()` instance is provided via `global.plugins`. Centralize it in a setup helper:
-
-```js
-// tests/vuetify.js
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-
-export const vuetify = createVuetify({ components, directives })
-```
-
-```js
-// tests/setup.js  (Vuetify needs ResizeObserver, which happy-dom/jsdom lack)
-import { vi } from 'vitest'
-globalThis.ResizeObserver = vi.fn(() => ({
-  observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn(),
-}))
-// jsdom-only: happy-dom already implements matchMedia; guard for both:
-if (!globalThis.matchMedia) {
-  globalThis.matchMedia = () => ({
-    matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn(),
-  })
-}
-```
-
-```js
-// component test
-import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
-import { vi } from 'vitest'
-import { vuetify } from '../../tests/vuetify.js'
-import PlayResult from '@/components/PlayResult.vue'
-
-const wrapper = mount(PlayResult, {
-  global: {
-    plugins: [vuetify, createTestingPinia({ createSpy: vi.fn })],
-  },
-})
-```
-
-### 3. Mock axios (pure store unit tests) + `import.meta.env`
-
-```js
-// src/stores/gameStore.test.js
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import axios from 'axios'
-import { useGameStore } from '@/stores/gameStore'
-
-vi.mock('axios') // auto-mocks axios.get/post/etc.
-
-beforeEach(() => setActivePinia(createPinia()))
-
-it('records error on failed lineup submit', async () => {
-  axios.post.mockRejectedValueOnce({ response: { data: 'bad lineup' } })
-  const store = useGameStore()
-  await store.setLineup({}, false)
-  expect(store.error).toContain('bad lineup')
-})
-```
-
-Mock `import.meta.env` values with `vi.stubEnv` (preferred over reassigning `import.meta.env`):
-
-```js
-import { vi, afterEach } from 'vitest'
-vi.stubEnv('VITE_API_BASE_URL', 'http://test.local/api')
-afterEach(() => vi.unstubAllEnvs())
-```
-
-> Note: real store code reads `import.meta.env.VITE_API_BASE_URL` at module init. If a store captures the URL at import time, set the stub in a `setupFiles` entry (or a top-level `vi.stubEnv` before importing the store) so the value is present when the module evaluates.
-
-### 4. Playwright config for a Vite dev server + mocked vs real backend
-
-```js
-// playwright.config.js
-import { defineConfig } from '@playwright/test'
-
-const REAL = process.env.PW_MODE === 'real'
-
-export default defineConfig({
-  testDir: './e2e',
-  use: { baseURL: 'http://localhost:5173', trace: 'on-first-retry' },
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    // In real mode, point the app at a live backend via env:
-    env: REAL ? { VITE_API_BASE_URL: process.env.API_BASE_URL } : {},
-  },
-})
-```
-
-Route mocking (hermetic default) vs real backend, keyed off the same flag:
-
-```js
-// e2e/run-play.spec.js
-import { test, expect } from '@playwright/test'
-
-const REAL = process.env.PW_MODE === 'real'
-
-test('runs a play and shows the result', async ({ page }) => {
-  if (!REAL) {
-    // Intercept backend calls -> deterministic responses (no backend needed)
-    await page.route('**/api/**', (route) =>
-      route.fulfill({ json: { result_type: 'Complete', result: 8 } }),
-    )
-  }
-  await page.goto('/game')
-  await page.getByRole('button', { name: /run play/i }).click()
-  await expect(page.getByText(/complete/i)).toBeVisible()
-})
-```
-
-- **Mocked mode (default, `npm run test:e2e`):** `page.route()` fulfills all `**/api/**` requests → fully hermetic, no backend, fast, deterministic. This is the CI-friendly path even though CI is out of scope this milestone.
-- **Real mode (`npm run test:e2e:real`):** no route interception; the dev server is started with a real `VITE_API_BASE_URL`. Truest signal, but depends on backend availability. Match the mock URL glob (`**/api/**`) to the app's actual request paths.
+**Status indicator:** Map VueUse `status` (`'CONNECTING' | 'OPEN' | 'CLOSED'`) plus an "is reconnecting" flag to the required live / reconnecting / disconnected UI states.
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| happy-dom | jsdom (`^26`) | If a specific Vuetify component's layout/measurement logic misbehaves under happy-dom. jsdom is higher-fidelity but slower; keep it as a per-file `// @vitest-environment jsdom` override rather than the global default. |
-| @vue/test-utils | @testing-library/vue | If the team prefers user-centric queries (`getByRole`) over wrapper APIs. It layers on top of test-utils; adds a dependency for little gain on a small suite. test-utils is the lower-level, official baseline. |
-| Vite 6 upgrade | Vite 7 upgrade | If the devcontainer Node is (or can be) pinned to ≥20.19. Vite 7 is fine but adds a Node floor for no functional benefit here. |
-| createTestingPinia (component tests) | real createPinia + vi.mock('axios') | Use real Pinia for **store unit tests** (you want the real action logic + mocked transport). Use testing-pinia for **component tests** where you want to stub actions and assert they were called. |
+| `@vueuse/core` `useWebSocket` | **Native `WebSocket` + hand-rolled thin composable (no dep)** | Reasonable if the team is dep-averse and wants zero new packages. You then own ~40–80 lines of reconnect/backoff/heartbeat/teardown logic and its tests. VueUse gives this for free and is already the ecosystem standard — but a bespoke composable is a legitimate, defensible choice given how simple a read-only channel is. This is the *only* serious alternative. |
+| `@vueuse/core` `useWebSocket` | `partysocket` `^1.3.0` | Only if you needed a framework-agnostic, robust reconnecting socket **without** Vue reactivity (e.g. shared with non-Vue code). It's the maintained successor to `reconnecting-websocket`. Overkill here since VueUse already wraps reconnection and gives reactivity. |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Jest | Requires babel/ts transforms and a separate config that duplicates Vite's; SFC + ESM + `import.meta.env` handling is painful. Not idiomatic for Vite projects. | Vitest |
-| Cypress (E2E) | Heavier, slower, weaker parallelism and network-mocking ergonomics than Playwright; not the current default for new Vue/Vite projects. | @playwright/test |
-| Vitest 0.34.x (to keep Vite 4) | EOL, unmaintained, misses years of Vue/Vite fixes. Freezes you on a dead runner to avoid a trivial Vite bump. | Upgrade Vite→6, use Vitest 4 |
-| jsdom `^29` | Requires Node ≥20.19; the `:20` devcontainer may be below that, causing install/runtime failures. | jsdom `^26` (Node ≥18) or happy-dom |
-| Mismatched `vitest` / `@vitest/coverage-v8` / `@vitest/ui` versions | These have exact-version peer deps on each other (`4.1.10`). Version drift = peer-dep errors. | Keep all `@vitest/*` + `vitest` on the same version |
+| `socket.io-client` | The server is a **plain** read-only WebSocket, not a Socket.IO endpoint. Socket.IO has its own handshake/framing/protocol and will **fail to connect** to a raw `/game/ws`. Also large and bidirectional — the opposite of this read-only need. | Native `WebSocket` (via `useWebSocket`). |
+| `reconnecting-websocket` (`4.4.0`) | Effectively **unmaintained** — last published 2022-06. Adds a dependency to solve a problem VueUse already solves in-tree. | `useWebSocket`'s built-in `autoReconnect`, or `partysocket` if a standalone lib is truly required. |
+| Hand-rolled global `WebSocket` singleton in `main.js` / module scope | No lifecycle binding → leaks sockets across route changes and test runs; hard to mock; fights the composable pattern the codebase uses everywhere. | Scoped `useGameSocket()` composable invoked from the game view. |
+| STOMP / MQTT / GraphQL-WS clients | Wrong protocol entirely for a tagged `{ event, data }` JSON envelope over raw WS. | Plain JSON parse of `event.data`. |
 
 ## Stack Patterns by Variant
 
-**If the devcontainer Node is a plain `:20` (possibly < 20.19):**
-- Use Vite **6**, happy-dom (or jsdom **26**). Avoids every Node-≥20.19 floor. **← this project's default.**
+**If the team wants zero new dependencies:**
+- Use native `WebSocket` inside `src/composables/useGameSocket.js` with a small reconnect timer (exponential backoff, cap ~30s) and `tryOnScopeDispose`-style cleanup.
+- Because it's a *read-only* channel with no send path, the hand-rolled surface is genuinely small and fully testable with the same mock-socket approach.
 
-**If Node is pinned ≥ 20.19 / on 22:**
-- Vite 7 + jsdom 29 are both available; still no strong reason to prefer them over the Vite 6 baseline.
-
-**If Vuetify component tests prove flaky under happy-dom:**
-- Add `// @vitest-environment jsdom` at the top of just those spec files; keep happy-dom global.
+**If the team wants the standard, lowest-maintenance path (recommended):**
+- Use `@vueuse/core` `useWebSocket` — reconnection, backoff, reactive status, and teardown are provided and maintained upstream. Your code shrinks to envelope-unwrap + store-dispatch.
 
 ## Version Compatibility
 
 | Package A | Compatible With | Notes |
 |-----------|-----------------|-------|
-| `vitest@4.1.10` | `vite@^6 \|\| ^7 \|\| ^8` | **Blocks Vite 4** — the reason for the prerequisite upgrade. Engines: Node ^20/^22/>=24. |
-| `vite@6.4.3` | Node `^18 \|\| ^20 \|\| >=22` | Safe target for a Node 20 devcontainer. |
-| `@vitejs/plugin-vue@6.0.7` | `vue@^3.2.25`, `vite@^5 \|\| ^6 \|\| ^7` | Upgrade alongside Vite. |
-| `@vitest/coverage-v8@4.1.10` | `vitest@4.1.10` (exact) | Keep lockstep with vitest. |
-| `@vue/test-utils@2.4.11` | `vue@3.x` | Correct line for Vue 3. |
-| `jsdom@29` | Node `^20.19 \|\| ^22.13 \|\| >=24` | Avoid unless Node ≥20.19; use jsdom 26 otherwise. |
-| `@playwright/test@1.61.1` | Node `>=18` | Independent of the Vite/Vitest chain; safe. |
+| `@vueuse/core@14.3.0` | `vue@^3.3.4` | VueUse 14 targets Vue 3; fully compatible with the repo's Vue 3.3+. No peer conflicts with Pinia/Vuetify/Vite 6. |
+| `@vueuse/core@14.3.0` | `vite@^6.4.3` | Pure ESM library; works with Vite 6 out of the box. |
+| `useWebSocket` `autoReconnect` | — | Config shape: `autoReconnect: { retries: 5, delay: (retries) => Math.min(1000 * 2 ** (retries - 1), 30000), onFailed() {…} }`. `delay` accepts a **function** of the retry count → true exponential backoff with a cap, no extra lib. `onConnected(ws)` fires on every (re)connect — the hook for the `GET /state` resync. |
+| `page.routeWebSocket()` | `@playwright/test@1.61.1` | API introduced in Playwright **1.48**; the repo's 1.61.1 supports it. Lets the test impersonate the WS server (send envelopes, force close to test reconnect). |
+| jsdom `26.1.0` | Vitest `3.2.7` | jsdom provides **no** `WebSocket` global — you must stub it in unit/store tests (`vi.stubGlobal('WebSocket', FakeWebSocket)`). Expected and simple. |
 
 ## Sources
 
-- npm registry (`npm view <pkg> version|peerDependencies|dependencies|engines`), 2026-07-13 — verified live versions and peer/dependency constraints for vitest (0.34/1/2/3/4), @vue/test-utils, @vitest/coverage-v8, happy-dom, jsdom (26 & 29), @playwright/test, vite (5/6/7), @vitejs/plugin-vue(-jsx). **Confidence: HIGH.**
-- Local `package.json` + `npm ls vite` — confirmed project resolves to `vite@4.5.14` and Node 20 devcontainer, establishing the upgrade requirement. **Confidence: HIGH.**
-- `.planning/codebase/TESTING.md` / `STACK.md` — existing analysis of test targets, alias, Vuetify plugin requirement. **Confidence: HIGH.**
+- npm registry (live query 2026-07-18) — `@vueuse/core@14.3.0` (latest), `reconnecting-websocket@4.4.0` (last modified 2022-06, unmaintained), `partysocket@1.3.0` (maintained), `@playwright/test@1.61.1` — HIGH confidence.
+- vueuse.org/core/useWebSocket (official docs, v14.3.0) — verified `status`/`data`/`send`/`open`/`close`, `onConnected`/`onMessage`/`onDisconnected` callbacks, `autoReconnect` with functional `delay` (exponential backoff), `heartbeat`, `immediate`/`autoConnect`, scope-dispose cleanup — HIGH confidence.
+- playwright.dev/docs (Mock browser APIs + network/WebSocket) — verified `page.routeWebSocket()` availability (since 1.48) and `page.addInitScript` fallback pattern for global mocking — HIGH confidence.
+- Repo `package.json` — confirmed actual installed versions (Vite 6.4.3, Vitest 3.2.7, Playwright 1.61.1, no VueUse yet) which supersede the dated `codebase/STACK.md` figures — HIGH confidence.
 
 ---
-*Stack research for: automated testing of a Vue 3 + Vite + Pinia + Vuetify SPA*
-*Researched: 2026-07-13*
+*Stack research for: read-only WebSocket realtime channel (Vue 3 + Pinia + Vite)*
+*Researched: 2026-07-18*

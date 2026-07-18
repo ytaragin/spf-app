@@ -1,296 +1,253 @@
 # Architecture Research
 
-**Domain:** Automated test infrastructure for a Vue 3 + Vite + Pinia SPA (backend-authoritative)
-**Researched:** 2026-07-13
-**Confidence:** HIGH
+**Domain:** Read-only WebSocket integration into a Vue 3 + Pinia setup-store SPA (v1.1 Realtime)
+**Researched:** 2026-07-18
+**Confidence:** HIGH (integration mechanics grounded in the actual `gameStore.js` source and existing ARCHITECTURE.md; reconnect/backoff tuning is MEDIUM — standard practice, values are a starting point)
 
 ## Standard Architecture
 
-The idiomatic Vue 3 + Vite test stack is a **two-runner architecture**: Vitest owns everything in-process (domain, store, component) sharing Vite's transform pipeline and the `@`→`src` alias; Playwright owns out-of-process browser E2E. They do not share a config file — Vitest reads `vitest.config.js` (or a `test` block in `vite.config.js`), Playwright reads `playwright.config.js`. The only thing they share is the app itself.
-
-Within Vitest, layers form a strict **dependency cone**: the runner + config is the foundation, then three test layers of increasing setup cost stack on top. Each higher layer depends on the infrastructure of the ones below being proven to work.
+The recommended shape adds **one new layer boundary** (a live transport) and **one new pure module** (event parse/dispatch), reusing the existing `src/game/` isolation discipline. The socket does **not** get its own state ownership — it feeds the existing `gameStore` write path.
 
 ### System Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   E2E LAYER (Playwright)                     │
-│   playwright.config.js  ·  e2e/*.spec.js  ·  fixtures/       │
-│   ┌───────────────────────┐   ┌───────────────────────────┐ │
-│   │ mocked-API mode       │   │ real-backend mode         │ │
-│   │ page.route() intercept│   │ webServer: vite preview   │ │
-│   │ (hermetic, default)   │   │ + VITE_API_BASE_URL       │ │
-│   └───────────────────────┘   └───────────────────────────┘ │
+│                   Presentation (Vue SFCs)                    │
+│  GameView.vue ── hosts ── GameLayout.vue                     │
+│      │                                                       │
+│      └── ConnectionStatus.vue  (live / reconnecting / down)  │
 ├─────────────────────────────────────────────────────────────┤
-│                  VITEST (single in-process runner)           │
-│   vitest.config.js  ·  test/setup.js  ·  test/factories/     │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐  │
-│  │ Component     │  │ Store         │  │ Domain             │  │
-│  │ @vue/test-    │  │ mocked axios  │  │ pure fns           │  │
-│  │ utils+Vuetify │  │ +fresh Pinia  │  │ NO setup           │  │
-│  │ +jsdom  (3)   │  │ (2)           │  │ (1) START HERE     │  │
-│  └──────┬───────┘  └──────┬───────┘  └─────────┬──────────┘  │
-│         │ needs setup.js  │ needs mocks        │ needs only  │
-│         └─────────────────┴────────────────────┴─ runner+cfg │
+│                   State Layer (Pinia)                        │
+│  ┌───────────────────────────┐   ┌───────────────────────┐  │
+│  │ gameStore (existing)      │   │ teamStore (existing)  │  │
+│  │  + connectionStatus ref   │   │                       │  │
+│  │  ONE idempotent write     │◄──┤ lineups target        │  │
+│  │  path: applyServerEvent() │   │                       │  │
+│  └──────────▲────────────────┘   └───────────────────────┘  │
+│             │ (dispatch calls store mutations)               │
+├─────────────┼───────────────────────────────────────────────┤
+│      Domain / Pure Logic (src/game/) — NO Vue, NO socket     │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ gameEvents.js : parseEvent(raw) → {type,payload}      │   │
+│  │                 dispatchEvent(store, event)           │   │
+│  └──────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
-│                 FOUNDATION (must exist first)                │
-│   vitest + @vue/test-utils + jsdom + @vitest/coverage-v8     │
-│   config: jsdom env · globals:true · @→src alias reuse       │
-└─────────────────────────────────────────────────────────────┘
+│      Live Transport (NEW) — thin, imperative, mockable       │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ useGameSocket() composable                            │   │
+│  │  owns WebSocket lifecycle: connect / reconnect /      │   │
+│  │  backoff / resync-on-reconnect. Delegates every       │   │
+│  │  message to parseEvent + dispatchEvent.               │   │
+│  └───────────────┬──────────────────────────────────────┘   │
+│                  │ ws://  (derived from VITE_API_BASE_URL)    │
+└──────────────────┼───────────────────────────────────────────┘
+                   ▼
+         Backend  GET /game/ws  (server → client only)
 ```
 
 ### Component Responsibilities
 
 | Component | Responsibility | Typical Implementation |
 |-----------|----------------|------------------------|
-| Vitest config | Test discovery, jsdom env, `@`→src alias reuse, globals, setup-file registration, coverage | `vitest.config.js` importing `vite.config.js` via `mergeConfig`, or `test:` block inside `vite.config.js` |
-| Global setup file | One-time per-file bootstrap: register Vuetify plugin, reset Pinia, install global mocks (`ResizeObserver`, `matchMedia`) | `test/setup.js` referenced by `setupFiles` in config |
-| Fixtures / factories | Deterministic builders for game state, play results, rosters | `test/factories/*.js` — plain functions `makeGameState(overrides)`, `makePlayResult(overrides)` |
-| Domain suite | Verify pure functions in `src/game/` | Co-located `*.test.js`, zero mocks, zero setup |
-| Store suite | Verify Pinia stores incl. error branches | Co-located `*.test.js`, `vi.mock('axios')` + `setActivePinia(createPinia())` |
-| Component suite | Verify SFC rendering/interaction | Co-located `*.test.js`, `mount(C, { global: { plugins: [vuetify, pinia] } })` |
-| Playwright config | Browser matrix, `webServer`, base URL, env-driven mode switch | `playwright.config.js` |
-| E2E suite | Verify core user flows end-to-end | `e2e/*.spec.js` with a route-mock helper toggled by env var |
-| npm scripts | Developer entry points per layer | `test`, `test:watch`, `test:coverage`, `test:e2e`, `test:e2e:real` |
+| `useGameSocket()` composable | Own the live `WebSocket`: open, close, reconnect w/ backoff, trigger resync. **No parsing logic, no state shape knowledge.** | Vue composable in `src/composables/useGameSocket.js`; takes a `socketFactory` + the store; wires `onmessage → parseEvent → dispatchEvent`. |
+| `gameEvents.js` (pure) | Unwrap `{ event, data }` envelope → normalized event; map each variant to the correct store mutation. **No Vue, no WebSocket, no axios.** | Pure module in `src/game/gameEvents.js`, mirroring `playOutcome.js`. `parseEvent(raw)` + `dispatchEvent(store, event)`. |
+| `gameStore` (extended) | Idempotent write path + `connectionStatus` ref. Already the single source of truth for `gameState`, `lineups`, `nextPlayType`, `playResults`. | Add `applyServerEvent(event)` (or reuse existing mutators) + `connectionStatus` ref + `resync()`. |
+| `ConnectionStatus.vue` | Render live / reconnecting / disconnected from `gameStore.connectionStatus`. | Small Vuetify SFC (`v-chip`/`v-icon`) in `src/components/`; read-only via `storeToRefs`. |
 
 ## Recommended Project Structure
 
 ```
-spf-app/
-├── vite.config.js              # existing — source of the @ → src alias
-├── vitest.config.js            # NEW — mergeConfig(viteConfig, { test: {...} })
-├── playwright.config.js        # NEW — separate runner, webServer + env switch
-├── package.json                # NEW scripts: test, test:watch, test:coverage, test:e2e
-├── src/
-│   ├── game/
-│   │   ├── playOutcome.js
-│   │   ├── playOutcome.test.js       # co-located domain unit (LAYER 1)
-│   │   ├── TeamData.js
-│   │   ├── TeamData.test.js
-│   │   └── SPFMetadata.test.js
-│   ├── stores/
-│   │   ├── gameStore.js
-│   │   ├── gameStore.test.js         # co-located store unit, mocked axios (LAYER 2)
-│   │   └── teamStore.test.js
-│   └── components/
-│       ├── PlayResult.vue
-│       └── PlayResult.test.js        # co-located component (LAYER 3)
-├── test/                             # NEW — shared Vitest infra (NOT co-located)
-│   ├── setup.js                      # Vuetify plugin, Pinia reset, global mocks
-│   └── factories/
-│       ├── gameState.js              # makeGameState(overrides)
-│       ├── playResult.js             # makePlayResult(overrides)
-│       └── roster.js                 # makeRoster(overrides)
-└── e2e/                              # NEW — Playwright specs (LAYER 4)
-    ├── fixtures/
-    │   ├── mockApi.js                # page.route() handlers for /game/*, /players/*
-    │   └── responses/*.json          # canned backend responses (reuse factories where possible)
-    └── play-flow.spec.js
+src/
+├── game/
+│   ├── playOutcome.js        # existing pure module (reference pattern)
+│   └── gameEvents.js         # NEW pure: parseEvent + dispatchEvent (no Vue/WS)
+├── composables/
+│   └── useGameSocket.js      # NEW: live WebSocket lifecycle + reconnect/backoff
+├── stores/
+│   └── gameStore.js          # EXTENDED: connectionStatus, applyServerEvent, resync
+└── components/
+    └── ConnectionStatus.vue  # NEW: status indicator
 ```
 
 ### Structure Rationale
 
-- **Co-locate unit/component `*.test.js` next to source** — matches Vitest defaults and Vue ecosystem norms; the test travels with the file it verifies, easy to find, easy to delete together. This is the established convention for in-process tests.
-- **`test/` for shared infra only** — setup files and factories are cross-cutting, not tied to one source file, so they live in a dedicated root dir. Do not co-locate factories.
-- **`e2e/` separate from `src/`** — Playwright specs are not transformed by Vite the same way and must be *excluded* from Vitest's discovery (`test.exclude` or `include` scoped to `src/**`). A separate top-level dir makes that boundary trivial and prevents Vitest from trying to run `.spec.js` browser tests in jsdom.
-- **`vitest.config.js` via `mergeConfig`** — reuses the existing `@`→src alias and Vue plugin from `vite.config.js` without duplication (the hard constraint from PROJECT.md). Keeping it a separate file (vs. inlining into `vite.config.js`) keeps test concerns out of the build config.
+- **`src/game/gameEvents.js`:** Envelope-unwrapping and event→mutation mapping are *pure decision logic* — exactly the class of code the project already isolates in `src/game/` (per ARCHITECTURE.md "Domain logic isolated as framework-agnostic pure classes/functions"). Keeping it pure means the entire dispatch table is unit-testable with a plain fake store object and zero socket/jsdom setup — the same zero-mock discipline that made `playOutcome` tests trivial in v1.0.
+- **`src/composables/useGameSocket.js`:** The `WebSocket` object is inherently imperative and stateful (open handles, timers). A composable is the idiomatic Vue 3 home for lifecycle-bound side effects tied to a view (`onMounted`/`onUnmounted`), and it accepts an injected `socketFactory` so tests swap in a mock socket. `src/composables/` is a new but conventional folder.
+- **`gameStore` stays the write owner:** `gameState` is already "the canonical game snapshot; always overwritten wholesale from server `new_state`." Adding a second state-owning store would split truth. The socket must funnel through the *same* store mutators REST uses.
 
 ## Architectural Patterns
 
-### Pattern 1: Config reuse via mergeConfig
+### Pattern 1: One idempotent write path shared by REST and WS
 
-**What:** Derive `vitest.config.js` from the existing Vite config so the `@` alias, Vue plugin, and env handling are inherited, not re-declared.
-**When to use:** Always, in a Vite project that already has a working `vite.config.js`.
-**Trade-offs:** One extra import; avoids alias drift that silently breaks `@/...` imports in tests.
+**What:** Both REST responses and WS events converge on the **same** store mutations. The store already exposes `updateGameStateFromPlayResult(playResult)` which does `gameState.value = { ...new_state }` — a wholesale replace that is *inherently idempotent* (re-applying the same `new_state` yields the same object). WS `PlayRun` (a full `PlayAndState`) feeds this exact function. Other variants map to existing targets.
 
-```js
-// vitest.config.js
-import { mergeConfig } from 'vite'
-import { defineConfig } from 'vitest/config'
-import viteConfig from './vite.config.js'
+**When to use:** Always, for this milestone — it is the core requirement ("REST optimistic apply + WS apply, made safe by idempotent state application").
 
-export default mergeConfig(viteConfig, defineConfig({
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./test/setup.js'],
-    include: ['src/**/*.test.js'],
-    exclude: ['e2e/**', 'node_modules/**'],
-    coverage: { provider: 'v8', reporter: ['text', 'html'] }, // report-only
-  },
-}))
-```
+**Trade-offs:** Requires a guard so duplicate `PlayRun` events don't push a duplicate row into `playResults`. The store already has this guard in `fetchPlayResult` (only push when `play_counter` increased) — extract it into a shared `applyPlayResult(play)` so both REST polling and WS use the counter check. Wholesale-replace of `gameState` needs no guard.
 
-### Pattern 2: Shared setup file for Vuetify + Pinia + global mocks
-
-**What:** A single `setupFiles` module registers the Vuetify plugin factory, resets Pinia per test, and polyfills browser globals jsdom lacks (`ResizeObserver`, `matchMedia`) that Vuetify touches.
-**When to use:** Required the moment component tests enter the picture; harmless for earlier layers.
-**Trade-offs:** Global setup can hide per-test intent; keep it to genuinely universal concerns and pass the Vuetify instance explicitly in `mount(...)` rather than auto-installing, so component tests stay readable.
-
-```js
-// test/setup.js
-import { beforeEach, vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
-
-global.ResizeObserver = class { observe(){} unobserve(){} disconnect(){} }
-window.matchMedia ??= () => ({ matches: false, addEventListener(){}, removeEventListener(){} })
-
-beforeEach(() => setActivePinia(createPinia()))
-```
-```js
-// in a component test — Vuetify passed explicitly, not globally auto-installed
-import { createVuetify } from 'vuetify'
-const vuetify = createVuetify()
-mount(PlayResult, { global: { plugins: [vuetify] }, props: { result: makePlayResult() } })
-```
-
-### Pattern 3: Factory functions for game state (not static JSON blobs)
-
-**What:** Expose `makeGameState(overrides)` / `makePlayResult(overrides)` that return a valid default deep-merged with per-test overrides.
-**When to use:** As soon as store or component tests need realistic `gameState`; also feed E2E mock responses.
-**Trade-offs:** Slightly more code than inline literals, but a schema change updates one factory instead of dozens of tests. Because the backend is authoritative and `gameState` is replaced wholesale from `new_state`, tests need whole valid snapshots constantly — factories pay off immediately.
-
-```js
-// test/factories/playResult.js
-export const makePlayResult = (o = {}) => ({ result_type: 'Complete', result: 8, ...o })
-```
-
-### Pattern 4: Env-toggled E2E — page.route mock vs. real backend
-
-**What:** A single spec suite runs in two modes. Default (hermetic) installs `page.route()` handlers that fulfill `/game/*`, `/players/*`, `/offense/*`, `/defense/*` from canned JSON. Real mode skips the mock and points `webServer`/base URL at a live `VITE_API_BASE_URL`. An env var (e.g. `E2E_MODE=mock|real`) selects behavior.
-**When to use:** Backend-authoritative apps where mocked = fast/deterministic (default, CI-friendly) and real = truest integration signal.
-**Trade-offs:** Two code paths to keep in sync; mitigate by generating mock responses from the same factories the unit layer uses. HAR replay is an alternative to hand-written routes but adds a recording/maintenance step — hand-written `page.route` is simpler for a small, known API surface.
-
-```js
-// e2e/fixtures/mockApi.js
-export async function installMockApi(page) {
-  await page.route('**/players/**', r => r.fulfill({ json: makeRoster() }))
-  await page.route('**/game/play', r => r.fulfill({ json: { new_state: makeGameState() } }))
+**Example:**
+```javascript
+// gameStore.js — the single write path, called by REST AND by WS dispatch
+function applyServerEvent(event) {
+  switch (event.type) {
+    case 'GameStarted':          // data = GameState
+      gameState.value = { ...event.payload }
+      break
+    case 'OffensiveLineupSet':   // data = lineup
+      lineups.value.offense = event.payload
+      break
+    case 'DefensiveLineupSet':
+      lineups.value.defense = event.payload
+      break
+    case 'NextPlayTypeSet':      // data = play_type
+      nextPlayType.value = event.payload
+      break
+    case 'PlayRun':              // data = PlayAndState (result + new_state)
+      applyPlayResult(event.payload)   // counter-guarded push + updateGameStateFromPlayResult
+      break
+  }
 }
-// e2e/play-flow.spec.js
-test('run a play', async ({ page }) => {
-  if (process.env.E2E_MODE !== 'real') await installMockApi(page)
-  await page.goto('/')
-  // ...drive the flow, assert rendered result
-})
 ```
-```js
-// playwright.config.js — webServer only needed; real backend supplied via env
-export default defineConfig({
-  webServer: { command: 'npm run preview', url: 'http://localhost:4173', reuseExistingServer: true },
-  use: { baseURL: 'http://localhost:4173' },
-})
+
+### Pattern 2: Pure parse/dispatch, imperative socket (mirror `src/game/`)
+
+**What:** Split the WS layer into (a) pure `parseEvent(raw)` that unwraps `{ event, data }` into `{ type, payload }` and validates the tag, and (b) `dispatchEvent(store, event)` that just calls `store.applyServerEvent(event)`. The composable owns only the socket + timers and calls these two functions on each message.
+
+**When to use:** Whenever transport is stateful but the message semantics are pure — the exact situation here.
+
+**Trade-offs:** One extra indirection layer, but it buys full testability of the hardest-to-mock logic (message → state) without a live socket.
+
+**Example:**
+```javascript
+// src/game/gameEvents.js — pure, no Vue, no WebSocket
+export function parseEvent(raw) {
+  const msg = typeof raw === 'string' ? JSON.parse(raw) : raw
+  if (!msg || typeof msg.event !== 'string') return null   // ignore malformed
+  return { type: msg.event, payload: msg.data }
+}
 ```
+
+### Pattern 3: Reconnect-with-backoff + resync-on-open
+
+**What:** The composable reconnects on `close`/`error` with exponential backoff (capped), and on every *successful (re)open* triggers `gameStore.resync()` which calls the existing `fetchGameData(true)` (full sync via `GET /state` + plays). This closes the gap where events were missed while disconnected — safe precisely because apply is idempotent.
+
+**When to use:** Any read-only realtime channel where missed messages must not leave stale state.
+
+**Trade-offs:** Backoff values (e.g. 500ms → 1s → 2s → 5s → 10s cap, with jitter) are a starting point (MEDIUM confidence); tune against the real backend. Resync-on-open costs an extra REST round-trip per reconnect — acceptable and correct.
 
 ## Data Flow
 
-### Test Execution Flow
+### Inbound WS event flow
 
 ```
-npm run test           →  Vitest  →  jsdom  →  src/**/*.test.js  (layers 1–3, in-process)
-npm run test:e2e       →  Playwright (mock) →  vite preview  →  page.route intercept
-npm run test:e2e:real  →  Playwright (real) →  live app       →  VITE_API_BASE_URL backend
+Backend  GET /game/ws  emits  { event, data }
+    ↓ onmessage
+useGameSocket (composable, imperative)
+    ↓  parseEvent(raw)                → { type, payload }   (pure)
+    ↓  dispatchEvent(store, event)                          (pure)
+    ↓  store.applyServerEvent(event)  → SAME mutators REST uses
+gameState / lineups / nextPlayType / playResults  (idempotent)
+    ↓ reactive
+Vue components re-render
 ```
 
-### Dependency / Build Order (STRICT)
+### Coexistence with REST optimistic apply
 
 ```
-[0] Runner + config + alias        ← nothing works until this exists
-      ↓
-[1] Domain unit  (src/game/)       ← needs ONLY [0]; no mocks, no setup
-      ↓
-[2] Store unit   (mocked axios)    ← needs [0]; adds vi.mock(axios) + fresh Pinia
-      ↓
-[3] Component    (@vue/test-utils) ← needs [0] + setup.js (Vuetify/Pinia/globals)
-      ↓
-[4] E2E          (Playwright)      ← separate runner + config; app must run; mock helper then real toggle
+User action ──► gameStore.runPlay() ──► POST /game/play ──► optimistic apply (existing)
+                                                                     │
+Backend also broadcasts PlayRun ──► WS ──► applyServerEvent ─────────┤ (idempotent:
+                                                                     ▼  same new_state,
+                                              gameState replaced wholesale — no artifact)
 ```
 
-- **[0] is the hard gate.** No test of any layer runs before the runner, jsdom env, alias reuse, and a `test` script exist. This is why the runner+config is its own foundational unit of work, not folded into the domain phase.
-- **[1] domain** depends on [0] and nothing else — it is deliberately the first *test* layer because it needs zero mocking infrastructure.
-- **[2] store** introduces the axios-mock + Pinia-reset pattern. It reuses factories that are worth building here.
-- **[3] component** is the first layer that *requires* `test/setup.js` (Vuetify plugin + global polyfills). Do not attempt component tests before setup.js is proven.
-- **[4] E2E** is fully independent of the Vitest cone (different runner/config) but should come last because it is slowest, flakiest, and delivers signal already partially covered by [1]–[3]. Build **mock mode first** (hermetic, no backend dependency), then add the **real-backend toggle**.
+- **Direction is strictly server → client.** No client→server WS traffic (read-only).
+- **REST remains the write path.** WS is purely additive inbound.
+- **Idempotency is what makes double-apply safe:** wholesale `gameState` replace + `play_counter`-guarded `playResults` push.
 
-### Which layer delivers value earliest
+### Connection status flow
 
-**Domain unit (layer 1) delivers the most value per unit of effort, immediately.** `src/game/playOutcome.js` is pure, dependency-free, high logic density, and needs no mocks — a green suite here on day one proves the runner works AND locks down the highest-risk pure logic. It is the correct "start here" target and also the smallest possible proof that the foundation ([0]) is sound.
+```
+useGameSocket lifecycle events (open/close/retry)
+    ↓ set
+gameStore.connectionStatus ('live' | 'reconnecting' | 'disconnected')
+    ↓ storeToRefs
+ConnectionStatus.vue renders indicator
+```
 
-## Scaling Considerations
+Status lives in `gameStore` (not the composable) so any component can read it reactively and so it survives the composable's mount scope — consistent with the store owning all shared reactive state.
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| Current (small app, 3 domain modules, 2 stores, ~20 SFCs) | Single Vitest config, co-located tests, hand-written page.route mocks — all sufficient |
-| Growth (more stores/flows) | Introduce Vitest `projects` to split `unit` vs `component` runs; add MSW if mocking spreads beyond E2E into component tests |
-| CI adoption (out of scope now) | Add GitHub Actions running `test` + `test:e2e` (mock mode only in CI); gate real-backend E2E behind a manual/nightly job |
+### ws:// URL derivation
 
-### Scaling Priorities
+Derive from the existing `VITE_API_BASE_URL` (no new env var):
 
-1. **First bottleneck: component-test setup sprawl.** As SFC count grows, ad-hoc Vuetify/mount boilerplate multiplies — consolidate into a `mountWithVuetify()` helper in `test/`.
-2. **Second bottleneck: mock/real E2E drift.** Divergence between canned responses and the real API — fix by sourcing both from shared factories and running real-mode E2E periodically.
+```javascript
+// pure helper (testable) — in gameEvents.js or a small url util
+export function toWebSocketUrl(baseUrl) {
+  const u = new URL(baseUrl)                 // e.g. http://host:8080 or https://host
+  u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:'
+  u.pathname = (u.pathname.replace(/\/$/, '')) + '/game/ws'
+  return u.toString()
+}
+```
+Keep this pure and unit-tested (http→ws, https→wss, trailing-slash handling) — a common source of connect bugs.
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: One config trying to run both Vitest and Playwright
+### Anti-Pattern 1: Socket owning game state
 
-**What people do:** Point Vitest `include` at `e2e/*.spec.js`, or let Playwright pick up `src/**/*.test.js`.
-**Why it's wrong:** Vitest runs in jsdom/node and will crash on Playwright's `page` fixture; the runners have incompatible test contexts.
-**Do this instead:** Keep separate configs; scope Vitest `include` to `src/**/*.test.js` and `exclude` `e2e/**`; keep Playwright `testDir: 'e2e'`.
+**What people do:** Put `gameState`/reconnect/parse all inside `useGameSocket`, or create a second Pinia store that also holds game state.
+**Why it's wrong:** Splits the single source of truth; REST-apply and WS-apply drift; duplicate-application artifacts reappear. Contradicts the existing "backend-authoritative, one canonical `gameState`" model.
+**Do this instead:** Socket dispatches into `gameStore`'s existing mutators. State stays in the store; the composable owns only the connection.
 
-### Anti-Pattern 2: Building component tests before the setup file exists
+### Anti-Pattern 2: Parsing/dispatch logic buried in `onmessage`
 
-**What people do:** Jump to mounting SFCs, hit "unknown custom element `v-card`" or `ResizeObserver is not defined`, then thrash.
-**Why it's wrong:** Vuetify needs a plugin instance and jsdom lacks browser globals Vuetify uses — these are foundation, not per-test concerns.
-**Do this instead:** Follow the dependency order — prove `test/setup.js` (Vuetify + global polyfills) works, then write component tests.
+**What people do:** Inline the envelope-unwrap `switch` inside the composable's `ws.onmessage` handler.
+**Why it's wrong:** Forces a live/mock socket + jsdom to test the mapping, the highest-value logic. Breaks the project's `src/game/` purity discipline.
+**Do this instead:** Pure `parseEvent`/`dispatchEvent` in `src/game/`; the composable is a thin wire.
 
-### Anti-Pattern 3: Static JSON fixtures copy-pasted per test
+### Anti-Pattern 3: No resync after reconnect
 
-**What people do:** Inline large `gameState` literals in every store/component/E2E test.
-**Why it's wrong:** Backend-authoritative snapshots are large and change together; copies drift and a schema change breaks dozens of tests.
-**Do this instead:** Centralize in `test/factories/` and override per test; reuse the same factories to build E2E mock responses.
-
-### Anti-Pattern 4: E2E real-backend as the default (or only) mode
-
-**What people do:** Every E2E run hits a live backend.
-**Why it's wrong:** Slow, flaky, requires backend availability and a valid `VITE_API_BASE_URL`, unusable in hermetic/CI runs.
-**Do this instead:** Make `page.route` mock mode the default; gate real-backend behind an explicit env var / separate script.
+**What people do:** Reconnect and resume, assuming no messages were missed.
+**Why it's wrong:** Events emitted during the outage are lost → stale UI, especially opponent actions.
+**Do this instead:** On every (re)open, call `fetchGameData(true)` (`GET /state`). Idempotent apply makes this free of side effects.
 
 ## Integration Points
-
-### External Services
-
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| REST backend (`VITE_API_BASE_URL`) | E2E real mode via env var; mocked in unit (axios mock) and default E2E (page.route) | Absent/wrong URL silently breaks data flow — mock mode must require no backend at all |
-| Vite preview server | Playwright `webServer` boots `npm run preview` for E2E | `reuseExistingServer` for local dev speed |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| Vitest ↔ Playwright | None — separate runners, shared app only | Enforce via include/exclude + testDir |
-| Test setup ↔ component tests | `setupFiles` (implicit) + explicit `global.plugins` (Vuetify) | Prefer explicit Vuetify in `mount()` for readability; keep only true globals in setup.js |
-| Factories ↔ (store, component, E2E) | Direct import of `test/factories/*` | Single source of truth for game-state shape across all layers |
+| `useGameSocket` ↔ `gameEvents` (pure) | direct function calls (`parseEvent`, `dispatchEvent`) | keeps all semantics testable without a socket |
+| `gameEvents.dispatch` ↔ `gameStore` | calls `store.applyServerEvent()` | the ONE shared idempotent write path |
+| `gameStore` ↔ `ConnectionStatus.vue` | reactive ref via `storeToRefs` | status owned by store, not composable |
+| `useGameSocket` ↔ backend | `WebSocket` over `wss://…/game/ws` | URL derived from `VITE_API_BASE_URL`; inject `socketFactory` for tests |
 
-## Phase Ordering Implications (for roadmap)
+### Testability boundary (explicit)
 
-The dependency cone maps cleanly onto phases, each a shippable increment:
+- **Pure, no mocks:** `parseEvent` (envelope unwrap, malformed handling), `dispatchEvent` → store-mutator mapping (fake plain store object), `toWebSocketUrl` (protocol/path derivation). Mirrors v1.0's zero-mock `playOutcome` tests.
+- **Store-level (mocked socket + mocked axios):** `applyServerEvent` idempotency (apply same `PlayRun` twice → one `playResults` row, identical `gameState`); `resync` calls `GET /state`.
+- **Composable (injected mock socket):** reconnect/backoff sequencing, `connectionStatus` transitions, resync-on-open — driven by a fake socket emitting `open`/`close`/`message`, no real network.
+- **E2E (Playwright + mock WS server):** full inbound path end-to-end.
 
-1. **Phase: Test foundation** — install deps, `vitest.config.js` (alias reuse, jsdom, globals, coverage), npm scripts. *Gate for everything.* Prove with one trivial domain test.
-2. **Phase: Domain unit tests** (`src/game/`) — **earliest value, start here**; no mocks, validates foundation. Depends on Phase 1.
-3. **Phase: Store unit tests** — introduce axios-mock + Pinia-reset + factories. Depends on Phase 1 (Phase 2 optional but natural predecessor).
-4. **Phase: Component tests** — first to require `test/setup.js` (Vuetify + globals). Depends on Phase 1 + setup file; benefits from factories from Phase 3.
-5. **Phase: E2E** — separate Playwright config; **mock mode first**, then real-backend toggle. Independent runner; sequence last (slowest, some overlap with 2–4). Reuse factories for mock responses.
+## Suggested Build Order
 
-Phases 2–4 could parallelize once Phase 1 lands, but component (4) must not precede its setup file. E2E (5) is the natural finale.
+1. **`toWebSocketUrl` + `gameEvents.parseEvent`** (pure) — no dependencies; unit-testable immediately. Establishes the envelope contract.
+2. **`gameStore.applyServerEvent` + `applyPlayResult` extraction + `connectionStatus` ref** — extract the existing `play_counter` guard so REST and WS share it; add idempotency tests. Depends on (1) for event shape.
+3. **`gameEvents.dispatchEvent`** — trivial glue from parsed event to `store.applyServerEvent`; unit-test the full mapping table against a fake store. Depends on (1)+(2).
+4. **`useGameSocket` composable** — lifecycle, reconnect/backoff, resync-on-open; injected `socketFactory`. Depends on (1)–(3).
+5. **`ConnectionStatus.vue` + wiring in `GameView`/`GameLayout`** — mount `useGameSocket` per active game (`onMounted`/`onUnmounted`), render status. Depends on (4).
+6. **Playwright E2E against a mock WS server** — validates the whole inbound path. Depends on all above.
+
+Rationale: pure logic first (fastest feedback, no infra), then the store write path (idempotency is the core risk), then the imperative socket, then UI, then E2E — dependencies flow strictly upward, matching how v1.0 layered domain → store → component → E2E.
 
 ## Sources
 
-- Vitest — Browser Mode / projects & config (vitest.dev/guide/browser, /guide/projects) — HIGH (official, v4)
-- Playwright — Mock APIs (`page.route`, HAR, webServer) (playwright.dev/docs/mock) — HIGH (official)
-- Project codebase maps: `.planning/codebase/{ARCHITECTURE,STRUCTURE,TESTING}.md` — HIGH (validated repo analysis)
-- `.planning/PROJECT.md` constraints (alias reuse, Vuetify plugin, dual-mode E2E, report-only coverage) — HIGH (project-authoritative)
+- `.planning/codebase/ARCHITECTURE.md` — existing layered architecture, `gameState` wholesale-replace, `src/game/` purity discipline (HIGH — project's own analysis)
+- `src/stores/gameStore.js` (read directly) — existing `updateGameStateFromPlayResult`, `play_counter` guard in `fetchPlayResult`, `fetchGameData(fullSync)`, `VITE_API_BASE_URL` usage (HIGH — actual source)
+- `.planning/PROJECT.md` — v1.1 milestone decisions (read-only, idempotent apply, reconnect+resync, status indicator) (HIGH)
+- Standard WebSocket-client + Pinia composable patterns (reconnect/backoff/jitter, resync-on-open) (MEDIUM — well-established; backoff values are tunable defaults)
 
 ---
-*Architecture research for: Vue 3 + Vite + Pinia SPA test infrastructure*
-*Researched: 2026-07-13*
+*Architecture research for: read-only WebSocket → Vue 3 + Pinia setup-store integration*
+*Researched: 2026-07-18*

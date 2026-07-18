@@ -1,183 +1,154 @@
 # Feature Research
 
-**Domain:** Automated test suite for a Vue 3 + Vite + Pinia SPA (backend-authoritative)
-**Researched:** 2026-07-13
+**Domain:** Realtime WebSocket-driven UI updates for a turn-based, backend-authoritative game SPA (Vue 3 + Pinia)
+**Researched:** 2026-07-18
 **Confidence:** HIGH
 
-The "features" of this milestone are the *capabilities of a trustworthy test suite* — not app features. A capability is "table stakes" if its absence makes the suite untrustworthy or unusable; "differentiating" if it raises signal/velocity beyond the baseline; "anti-feature" if it's a common testing habit that adds cost without proportional value.
-
-Stack facts driving these recommendations (from codebase map + `package.json`):
-- Vite 4 / Vue 3.3 / Pinia 2 (setup stores) / Vuetify 3.6 / axios / vue-router 4.
-- Zero existing tests; `@` → `src` alias in `vite.config.js` must be reused.
-- Backend-authoritative: every play POSTs to `VITE_API_BASE_URL`; `gameState` is replaced wholesale from server `new_state`.
-- Priority targets already ranked: (1) `src/game/playOutcome.js` pure fns, (2) `src/stores/gameStore.js` (axios + error branches), (3) components (need `createVuetify()`).
-
-> Version note: Vite 4 pairs with **Vitest 1.x** (Vitest 2/3 expect Vite 5+). Pin Vitest to a 1.x line unless the Vite version is bumped. Confirm at install time — MEDIUM confidence on exact ceiling; the compatibility *direction* is HIGH.
+> Scope: ONLY the NEW v1.1 realtime features. The read-only `GET /game/ws` channel emits 5 tagged events (`GameStarted`, `OffensiveLineupSet`, `DefensiveLineupSet`, `NextPlayTypeSet`, `PlayRun`). Its core value is reflecting the **opponent's** server-side actions in the UI live. All writes stay on REST; backend stays authoritative; WS is an additive inbound state channel made safe by idempotent state application.
 
 ## Feature Landscape
 
 ### Table Stakes (Users Expect These)
 
-Missing any of these and the suite is not trustworthy or not usable day-to-day.
+Missing these makes the realtime feature feel broken, flaky, or untrustworthy.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Vitest runner wired into Vite config (reuses `@`→`src` alias, jsdom env, `globals: true`) | Without a runner nothing runs; wrong alias/env = imports and component mounts fail | LOW | Reuse `vite.config.js` alias via `test:` block or `vitest.config.js` `mergeConfig`. jsdom required to mount SFCs. Pin Vitest to a Vite-4-compatible (1.x) line. |
-| `npm` scripts: `test` (run once), `test:watch`, `test:coverage` | Standard entry points; CI-less local dev needs a one-shot and a watch loop | LOW | `vitest run`, `vitest`, `vitest run --coverage`. Matches TESTING.md recommendation. |
-| Domain unit tests for `src/game/` pure functions | Highest logic density, zero mocking, the confidence floor | LOW | `playOutcome.js` (`isTurnover`, `netYards`, `outcomeColor`, `outcomeSummary`, `classifyOutcome`, `managedTeamHadPossession`), plus `SPFMetadata`/`TeamData` methods. Start here. |
-| Fresh Pinia per test (`setActivePinia(createPinia())` in `beforeEach`) | Setup stores are singletons; stale state across tests = flaky, order-dependent failures | LOW | Non-negotiable for any store or component test that touches a store. |
-| axios mocking for store tests (`vi.mock('axios')`) | All network lives inline in stores; real HTTP in unit tests = slow, non-hermetic, backend-coupled | MEDIUM | Mock `axios.get/post`. Assert both success and rejection paths. `import.meta.env.VITE_API_BASE_URL` may need stubbing. |
-| Error-branch coverage in store tests | The app's error UX (snackbar via `gameStore.error`) is a real behavior; happy-path-only tests miss half the store | MEDIUM | Use `mockRejectedValueOnce`; assert `error` message extraction (`err.response.data ?? err.message`) and that `finally` resets `isSubmitting*` flags. |
-| Vuetify plugin registration in component mounts | Vuetify components fail to resolve without a `createVuetify()` instance in `global.plugins` | MEDIUM | `mount(C, { global: { plugins: [vuetify, pinia] } })`. jsdom lacks layout APIs — some Vuetify measurement warnings are expected/benign. |
-| Deterministic tests (no real time/network/random ordering) | Flaky tests destroy trust faster than having no tests | MEDIUM | Fake timers where needed; no live backend in unit/component layer; avoid asserting on non-deterministic server data. |
-| Coverage reporting (`@vitest/coverage-v8`, report-only) | You can't target "meaningful coverage of priority targets" without seeing the numbers | LOW | Report-only, **no enforced threshold** (per PROJECT.md scope). `v8` provider matches the runtime; no Istanbul instrumentation needed. |
-| Playwright E2E for the core play flow, mocked-API by default | A backend-authoritative app's real risk is the type→lineup→run→result round-trip; default runs must be hermetic (no backend) | HIGH | `page.route()` to stub `/game/*`, `/offense/*`, `/defense/*`, `/players/*`. Default `npm run test:e2e` needs no backend. |
+| Per-game WS connect on entering `/game`; disconnect on leave | A dangling socket from a previous game leaks events/state | LOW | Derive `ws(s)://` from `VITE_API_BASE_URL`; tie lifecycle to the game view (`onMounted`/`onUnmounted`) or the active-game id in `gameStore` |
+| Envelope unwrap `{ event, data }` → dispatch by `event` tag | WS bodies are tagged; REST bodies are bare. A single mis-parse silently drops updates | LOW | One dispatch map `event → handler`; unknown tags logged + ignored (forward-compat) |
+| Apply all 5 event variants to Pinia state | The whole point is the UI reflecting each server-side change | MEDIUM | `PlayRun` carries full resulting `GameState` (superset of REST `/play`); others patch a slice (lineup / play_type / state) |
+| Idempotent state application (re-apply = no-op) | REST optimistic apply + WS echo would otherwise double-apply / flicker | MEDIUM | Wholesale-replace `gameState` from server `new_state` (already the app's model). Guard slice patches so re-setting the same value is inert. This is the linchpin that makes REST+WS coexist |
+| Connection-status indicator: live / reconnecting / disconnected | Users must know whether "live" is actually live before trusting the board | LOW | 3-state chip/badge (green dot / amber "reconnecting…" / grey "disconnected"). Drive from a `connectionStatus` ref in the store |
+| Auto-reconnect with backoff | Networks blip; a socket that dies silently makes the game look frozen | MEDIUM | Exponential backoff with jitter + a cap (e.g. 1s→2s→4s→…→~30s). Reset backoff on a clean open |
+| Resync via `GET /state` on (re)connect | While disconnected, opponent moves are missed; the socket has no replay | MEDIUM | On every successful open (initial + each reconnect), fetch `GET /state` and wholesale-apply. Closes the missed-event gap. Depends on idempotent apply |
+| Stale/late-event guard (ordering) | Out-of-order or resync-vs-live races can clobber newer state with older | MEDIUM | Prefer a monotonic marker (`play_counter` / server sequence) — apply only if `incoming >= current`. This is the ordering safety net behind idempotency |
+| Clean teardown on unmount / logout | Zombie sockets keep reconnecting and firing state mutations off-screen | LOW | Cancel timers, remove listeners, `close()`. Guard reconnect loop against "intentionally closed" |
 
 ### Differentiators (Competitive Advantage)
 
-Higher-value capabilities that raise signal or velocity beyond the baseline.
+Polish that makes the realtime layer feel intentional. Not required to ship; align with "reflect the opponent's action clearly."
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Hermetic E2E via route mocking as the default mode | Fast, reproducible, runs offline/anywhere; catches wiring/render regressions without backend flakiness | HIGH | Central place to define canned responses per endpoint. This is what makes E2E runnable in a local loop, not just on demand. |
-| Real-backend E2E toggle (env-gated) | Truest end-to-end signal against the authoritative server when a backend + valid `VITE_API_BASE_URL` are available | MEDIUM | Gate via env (e.g. `E2E_MODE=real`) or a separate Playwright project. Skip/soft-fail cleanly when backend absent so it never blocks the default loop. |
-| Test fixtures/factories for game state | `gameState` and play results are large, nested, replaced wholesale — factories keep tests readable and reduce duplication | MEDIUM | `makeGameState(overrides)`, `makePlayResult(overrides)`, roster builders for `TeamData`. Shared by store, component, and E2E-mock layers — single source of canned shapes. |
-| Watch mode as the primary dev inner loop | Sub-second re-runs on save turn tests into a design tool, not a chore | LOW | `vitest` (no `run`). Ships free with the runner; call it out so it's actually used. |
-| Coverage report surfaced/inspectable (HTML or summary) | Turns report-only coverage into an actionable map of untested priority code | LOW | `reporters: ['text', 'html']`; scope `include` to `src/` so vendor/config noise doesn't dilute the signal. |
-| Component tests driven by store state (mount with pre-seeded Pinia) | Verifies presentation reacts correctly to `gameState` / async flags (loaders, snackbar, result rendering) — the layer most likely to silently break | MEDIUM | Seed the store, mount, assert rendered outcome color/label/icon. Pairs with factories. |
-| Playwright trace-on-failure | Fast root-cause for E2E failures without re-running blind | LOW | `trace: 'on-first-retry'` (or `retain-on-failure`). Nearly free config, big debugging payoff. |
+| Opponent-action toast/snackbar ("Opponent set their lineup", "Play run: +7 yds") | Surfaces *what changed* without the user hunting the board | LOW–MEDIUM | App already has a Vuetify snackbar. Only fire for opponent-originated events to avoid echoing the user's own REST actions (see anti-features) |
+| Subtle highlight/pulse on the changed region when a WS event lands | Draws the eye to the delta (new score, new play type) | MEDIUM | Vuetify transition / CSS pulse keyed to the mutated field. Keep short; respect `prefers-reduced-motion` |
+| "Reconnecting…" progressive detail (attempt count / next-retry countdown) | Turns dead air into visible, trustworthy recovery | LOW | Derive from backoff state already tracked for reconnect |
+| Manual "Reconnect now" affordance when disconnected | Gives users agency instead of waiting out backoff | LOW | Button on the disconnected indicator; resets backoff and forces a connect attempt |
+| Last-event / "synced Xs ago" freshness timestamp | Confidence signal that live really means live | LOW | Update on each applied event and on resync |
+| Distinguish "my move echoed" vs "opponent moved" in notifications | Prevents confusing self-notifications | MEDIUM | Compare event origin to the managed team (`teamStore` managed-team toggle already exists) |
+| Heartbeat / liveness detection (ping-pong or idle timeout) | Detects half-open sockets that TCP won't surface | MEDIUM | If no message within N seconds, proactively cycle the connection. Only worth it if the backend supports/echoes pings |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Testing habits that look responsible but add cost without proportional value — deliberately NOT doing these.
-
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Real backend in *every* E2E run | "Only a real backend is a true test" | Slow, flaky, non-hermetic, backend-coupled, breaks offline/local loop; non-deterministic server data makes assertions brittle | Mocked-API as default; real-backend as an opt-in, env-gated mode for periodic true-signal runs. |
-| Snapshot-testing every component | "Snapshots catch any change" | Huge brittle snapshots (Vuetify markup churns), reviewers rubber-stamp `-u`, tests assert framework internals not behavior | Assert specific behavior/output (color/label/icon, presence of loader). Reserve snapshots for small, stable, intentional serializations. |
-| Chasing 100% / enforced coverage threshold now | "100% means fully tested" | Rewards testing trivial/generated code, punishes hard-to-test glue, blocks work before a baseline exists (explicitly out of scope in PROJECT.md) | Report-only coverage; aim for meaningful coverage of the ranked priority targets. Add thresholds later, if ever, once baseline exists. |
-| Testing framework/library internals | "Test everything for safety" | Testing that Vuetify renders a `<v-btn>` or that Pinia stores a ref re-tests third-party code — pure maintenance cost, no app signal | Test *your* logic and *your* wiring: domain rules, store error branches, how components react to state. |
-| Testing the known tech-debt scaffold (`getHardCodedValue()`, unused `counter.js`) | "Coverage says it's untested" | Locks in dead/placeholder code the team intends to delete; couples tests to throwaway surface | Exclude scaffold from `coverage.include`; don't write tests for code slated for removal. |
-| Over-mocking pure domain functions | "Mock dependencies for isolation" | `src/game/` has no dependencies — mocking it hides real logic and inverts the value of the cheapest, highest-signal tests | Call pure functions directly with real inputs (TESTING.md "Do NOT mock" guidance). |
-| Refactoring app source to make it "testable" (e.g. extracting `src/api/`) | "Inline axios is hard to mock" | Explicitly out of scope this milestone; conflates test-adding with app refactor, expands blast radius | Test current code as-is via `vi.mock('axios')`; log the api-client extraction as tech debt for a later milestone. |
-| Asserting on live/non-deterministic server responses in real-backend E2E | "Verify the actual result" | Backend simulates outcomes → results vary run-to-run → false failures | In real-backend mode assert on invariants (request round-trips, state transitions occur, no errors), not on specific outcome values. |
+| Client→server WS commands (send plays/lineups over the socket) | "It's already a socket, why not write over it too?" | Splits the write path across two transports, breaks the backend-authoritative REST model, doubles error handling. Explicitly out of scope in PROJECT.md | Keep ALL writes on REST; WS stays read-only inbound |
+| Removing REST optimistic apply, relying on WS echo for own actions | "One source of truth, less code" | Own actions would feel laggy (round-trip to socket); a socket blip freezes the user's own UI | Keep REST optimistic apply; WS is additive + idempotent (the decided design) |
+| Full CRDT / OT / conflict-merge sync | "Robust realtime multiplayer" buzzword | Massive complexity for a turn-based, server-authoritative game with no concurrent edits to the same field. Server already resolves order | Wholesale server-state replacement + monotonic ordering guard. No merge needed |
+| Client-side event replay buffer / gap-fill reconstruction | "Never miss an event" | Reinventing durable messaging on a fire-and-forget socket; complex, bug-prone | `GET /state` resync on reconnect gives the authoritative snapshot — simpler and correct |
+| Presence / lobby / "opponent is typing"/"opponent online" | Feels like "real multiplayer" | Out of scope; needs a presence channel the read-only game socket doesn't provide; scope creep | Infer activity implicitly from received game events; defer presence |
+| Toasting the user's own actions (echoed via WS) | Falls out naturally from "toast every event" | Double-notifies the user for things they just did — noisy and confusing | Only notify opponent-originated events (origin/managed-team filter) |
+| Animating on the resync snapshot (`GET /state`) | "Animate all state changes" | Resync applies a bulk snapshot → would fire a flurry of pulses/toasts on every reconnect | Suppress notifications/animations during resync; only animate incremental live events |
+| Blocking the UI while disconnected | "Prevent acting on stale data" | REST still works offline-of-socket; blocking harms usability, and idempotent apply already reconciles | Non-blocking status indicator; let REST proceed, reconcile via resync |
+| Multiplexing all games over one shared socket | "Fewer connections" | Cross-game event leakage, harder lifecycle; app is single-active-game | One socket per active game, torn down on leave |
 
 ## Feature Dependencies
 
 ```
-Vitest runner (alias + jsdom + globals)
-    ├──requires──> npm test scripts (entry points to the runner)
-    ├──enables──> Domain unit tests (src/game/)        [no further deps]
-    ├──enables──> Coverage reporting (@vitest/coverage-v8)
-    │                  └──enhanced-by──> Coverage report surfaced (HTML/summary)
-    └──enables──> Fresh Pinia per test
-                       ├──requires-for-stores──> axios mocking
-                       │                              └──enables──> Error-branch coverage
-                       └──requires-for-components──> Vuetify plugin registration
-                                                          └──enables──> Store-driven component tests
+Per-game WS connect
+    └──requires──> Envelope unwrap + dispatch map
+                       └──requires──> Idempotent state application  ◄── LINCHPIN
+                                          ├──enables──> Auto-reconnect + backoff
+                                          │                 └──requires──> Resync via GET /state
+                                          └──enables──> Stale/late-event guard (monotonic ordering)
 
-Test fixtures/factories ──enhances──> store tests, component tests, E2E route mocks (shared canned shapes)
+Connection-status indicator ──reads──> connect / reconnect state
 
-Playwright config
-    └──enables──> Hermetic E2E (route mocking, DEFAULT)
-                       ├──enhanced-by──> Playwright trace-on-failure
-                       └──variant──> Real-backend E2E toggle (env-gated)
+Opponent-action toast ──requires──> managed-team origin filter (teamStore)
+Change-region highlight ──requires──> per-slice event handlers (not just wholesale replace)
+Reconnect UX polish (countdown / manual reconnect) ──enhances──> Auto-reconnect + backoff
 
-Deterministic tests ──constrains──> ALL layers (fake timers, no live network in unit/component,
-                                     invariant-only assertions in real-backend E2E)
-
-Real-backend-every-run  ──conflicts──> Hermetic-default E2E + Deterministic tests
-Enforced 100% coverage  ──conflicts──> Report-only scope (PROJECT.md)
+Idempotent apply ──makes-safe──> coexistence with existing REST optimistic apply
 ```
 
 ### Dependency Notes
 
-- **Runner before everything:** No capability functions without the Vitest config (alias + jsdom + globals). This is the first phase, no exceptions.
-- **Scripts are the runner's UI:** `test`/`test:watch`/`test:coverage` are trivial but gate day-to-day usability; land them with the runner.
-- **Coverage requires the runner + provider:** `@vitest/coverage-v8` plugs into an existing Vitest run; report surfacing (HTML) is an enhancement on top.
-- **Fresh Pinia gates all stateful tests:** Both store and component tests break without per-test Pinia isolation — it's a prerequisite, not an add-on.
-- **axios mocking gates store tests; Vuetify plugin gates component tests:** These are the two distinct "mount/exercise" prerequisites; error-branch and store-driven-component tests build on them respectively.
-- **Factories enhance three layers at once:** Because `gameState` is replaced wholesale from server shapes, one set of factories feeds store mocks, component seeding, and E2E route stubs — build once, reuse everywhere.
-- **Hermetic E2E is the default; real-backend is a gated variant:** They share the same specs but differ in transport. Real-backend must degrade gracefully (skip when no backend) so it never blocks the default loop.
-- **Determinism is a cross-cutting constraint:** It shapes assertions in every layer and is what the "real-backend-every-run" and "100% coverage" anti-features directly violate.
+- **Everything depends on idempotent state application.** It is what lets the existing REST optimistic-apply path and the new WS path both mutate `gameState` without flicker or double-application. Build/verify this first; it's already partly true because the app wholesale-replaces `gameState` from `new_state`.
+- **Resync depends on idempotent apply.** `GET /state` on reconnect applies a full snapshot; it must be a safe no-op when nothing changed and a clean overwrite when it did.
+- **Stale-event guard depends on a monotonic marker.** `play_counter` (already in the payload per CONVENTIONS.md) or a server sequence number lets you reject older-than-current applies — the ordering backstop that complements idempotency during the resync-vs-live race.
+- **Opponent-only notifications depend on origin filtering.** Reuse `teamStore`'s managed-team concept to tell "my echo" from "opponent's move." Without it, toasts double-fire.
+- **Highlight/animation depends on per-slice handlers.** Wholesale `gameState` replace loses the "what field changed" signal; to pulse a region you need the event-level delta (which the 5 typed events already provide).
 
 ## MVP Definition
 
-### Launch With (v1)
+### Launch With (v1.1)
 
-Minimum viable trustworthy suite.
+Minimum to make "the UI reflects the opponent live" true and trustworthy.
 
-- [ ] Vitest runner (alias + jsdom + globals) — nothing runs without it
-- [ ] `test` / `test:watch` / `test:coverage` npm scripts — usable entry points
-- [ ] Domain unit tests for `src/game/playOutcome.js` (+ SPFMetadata/TeamData) — highest signal, zero mocking, the confidence floor
-- [ ] Fresh Pinia per test — prerequisite for all stateful tests
-- [ ] `gameStore` tests with mocked axios incl. error branches + `finally`-flag resets — covers the app's real error UX
-- [ ] Coverage reporting (report-only) — needed to steer "meaningful coverage of priority targets"
+- [ ] Per-game connect/teardown on `/game` — no leaked sockets
+- [ ] Envelope unwrap + dispatch for all 5 event variants
+- [ ] Idempotent state application (coexists with REST optimistic apply)
+- [ ] `PlayRun` applies the full resulting `GameState` from the WS payload
+- [ ] Auto-reconnect with backoff + jitter and a cap
+- [ ] Resync via `GET /state` on every (re)connect
+- [ ] Stale/late-event guard via monotonic marker (`play_counter`/sequence)
+- [ ] Connection-status indicator (live / reconnecting / disconnected)
+- [ ] Store/unit tests with a mocked socket + Playwright E2E against a mock WS server
 
 ### Add After Validation (v1.x)
 
-Once the unit/store base is green and trusted.
-
-- [ ] Component tests with `createVuetify()` + seeded Pinia (e.g. `PlayResult.vue`) — trigger: store layer stable
-- [ ] Test fixtures/factories for `gameState` / play results / rosters — trigger: duplication of canned shapes appears across store/component tests
-- [ ] Playwright hermetic E2E for the play flow (route-mocked, default) — trigger: component layer trusted, ready for full-flow wiring coverage
-- [ ] Playwright trace-on-failure + coverage HTML report — trigger: first non-trivial debugging or coverage-gap session
+- [ ] Opponent-action toast (origin-filtered) — once base sync proven stable
+- [ ] Changed-region highlight/pulse — when users want clearer deltas
+- [ ] Reconnect polish (attempt count / countdown / manual "Reconnect now")
+- [ ] "Synced Xs ago" freshness timestamp
 
 ### Future Consideration (v2+)
 
-Deferred per PROJECT.md scope.
-
-- [ ] Real-backend E2E toggle (env-gated) — defer: depends on stable backend + `VITE_API_BASE_URL`; add once hermetic E2E is solid
-- [ ] CI integration (GitHub Actions) — defer: explicitly out of scope; add once suite is stable locally
-- [ ] Enforced coverage thresholds — defer: only after a meaningful baseline exists; may never be desirable
-- [ ] `src/api/` client extraction to simplify mocking — defer: app refactor, out of scope this milestone (logged tech debt)
+- [ ] Heartbeat/liveness ping-pong — only if half-open sockets prove to be a real problem and backend supports it
+- [ ] Presence / online indicators — needs a channel beyond the read-only game socket
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Vitest runner (alias + jsdom + globals) | HIGH | LOW | P1 |
-| npm test/watch/coverage scripts | HIGH | LOW | P1 |
-| Domain unit tests (`src/game/`) | HIGH | LOW | P1 |
-| Fresh Pinia per test | HIGH | LOW | P1 |
-| axios mocking + store error branches | HIGH | MEDIUM | P1 |
-| Coverage reporting (report-only) | MEDIUM | LOW | P1 |
-| Vuetify plugin registration for components | MEDIUM | MEDIUM | P2 |
-| Store-driven component tests | MEDIUM | MEDIUM | P2 |
-| Test fixtures/factories | MEDIUM | MEDIUM | P2 |
-| Hermetic (route-mocked) Playwright E2E | HIGH | HIGH | P2 |
-| Watch mode (surfaced as inner loop) | MEDIUM | LOW | P2 |
-| Coverage HTML report + Playwright trace | LOW | LOW | P2 |
-| Real-backend E2E toggle | MEDIUM | MEDIUM | P3 |
-| CI integration | HIGH | MEDIUM | P3 (out of scope) |
-| Enforced coverage thresholds | LOW | LOW | P3 (out of scope) |
+| Idempotent state application | HIGH | MEDIUM | P1 |
+| Envelope unwrap + 5-event dispatch | HIGH | MEDIUM | P1 |
+| `PlayRun` full-GameState apply | HIGH | LOW | P1 |
+| Per-game connect/teardown | HIGH | LOW | P1 |
+| Auto-reconnect + backoff | HIGH | MEDIUM | P1 |
+| Resync via `GET /state` on reconnect | HIGH | MEDIUM | P1 |
+| Stale-event / ordering guard | HIGH | MEDIUM | P1 |
+| Connection-status indicator | HIGH | LOW | P1 |
+| Mocked-socket + mock-WS E2E tests | HIGH | MEDIUM | P1 |
+| Opponent-action toast (origin-filtered) | MEDIUM | LOW | P2 |
+| Changed-region highlight/pulse | MEDIUM | MEDIUM | P2 |
+| Reconnect polish (countdown / manual) | MEDIUM | LOW | P2 |
+| Freshness timestamp | LOW | LOW | P3 |
+| Heartbeat/liveness | MEDIUM | MEDIUM | P3 |
+| Presence/online | LOW | HIGH | P3 |
 
-**Priority key:**
-- P1: Must have for a trustworthy v1 suite
-- P2: Add once the P1 base is green
-- P3: Defer (out of this milestone's scope)
+**Priority key:** P1 = must have for the milestone · P2 = polish, add after base proven · P3 = defer.
 
 ## Competitor Feature Analysis
 
-Reference stacks for a Vue 3 + Vite test suite, and where we land.
+Common patterns across realtime web apps and libraries (Socket.IO, Ably, Phoenix Channels, Firebase Realtime, Liveblocks), read for the read-only/turn-based case:
 
-| Capability | Vue "official" scaffold (create-vue) | Testing Library approach | Our Approach |
-|------------|--------------------------------------|--------------------------|--------------|
-| Unit/component runner | Vitest + `@vue/test-utils` + jsdom | Vitest + `@testing-library/vue` | Vitest + `@vue/test-utils` + jsdom (matches existing toolchain; TESTING.md) |
-| Store isolation | Fresh Pinia per test | Fresh Pinia per test | Fresh Pinia per test (`beforeEach`) |
-| Network in unit tests | Mock module / MSW | MSW handlers | `vi.mock('axios')` (no refactor; inline transport as-is) |
-| E2E | Playwright / Cypress, real or mocked | Playwright | Playwright, **mocked-API default** + real-backend opt-in |
-| Coverage | `@vitest/coverage-v8`, thresholds optional | v8, optional | v8, **report-only** (no threshold this milestone) |
-| CI | GitHub Actions template included | Actions | **Deferred** (local-only) |
+| Feature | Typical realtime app | Managed realtime service (Ably/Pusher) | Our Approach |
+|---------|----------------------|----------------------------------------|--------------|
+| Connection status | live/connecting/failed states shown | Built-in connection lifecycle + status events | 3-state chip driven by store `connectionStatus` |
+| Reconnect | Exponential backoff + jitter (library default) | Automatic with rewind/replay window | Backoff+jitter (hand-rolled) + `GET /state` resync (no replay window needed) |
+| Missed events | Replay from a server buffer / cursor | Message rewind / history | Authoritative snapshot resync — simpler, correct for server-authoritative state |
+| Ordering | Sequence numbers / channel ordering | Guaranteed ordering | Monotonic `play_counter`/sequence guard on apply |
+| Conflict handling | CRDT/OT for collaborative editing | Presence + last-write-wins | Not applicable — server resolves; wholesale replace |
+| Write path | Often bidirectional over the same socket | Publish over channel | REST-only writes (deliberately unidirectional WS) |
 
 ## Sources
 
-- `.planning/PROJECT.md` — milestone scope, constraints, key decisions (HIGH — project canonical)
-- `.planning/codebase/TESTING.md` — current no-test state, recommended framework, priority targets, patterns, mocking guidance (HIGH — direct codebase analysis)
-- `.planning/codebase/ARCHITECTURE.md` — layered architecture, backend-authoritative play path, error-handling strategy, tech-debt anti-patterns (HIGH — direct codebase analysis)
-- `package.json` — confirmed Vite 4 / Vue 3.3 / Pinia 2 / Vuetify 3.6; existing scripts (HIGH — direct read)
-- Established Vue 3 + Vite testing conventions (create-vue scaffold, Vitest + @vue/test-utils, Playwright route mocking) (HIGH — widely idiomatic). Vitest↔Vite version pairing (Vitest 1.x for Vite 4) is MEDIUM confidence on the exact ceiling; verify at install.
+- WebSocket UX / connection-status & reconnect patterns: MDN WebSocket API guidance; common exponential-backoff-with-jitter reconnect practice (Socket.IO / library defaults) — HIGH confidence, stable well-known patterns
+- Missed-event handling via authoritative resync vs replay buffers: managed realtime service docs patterns (Ably/Pusher "connection recovery / rewind"), Phoenix Channels rejoin+refetch idiom — HIGH confidence
+- Idempotency + monotonic-ordering guards for server-authoritative state: established event-application practice; reinforced by this project's existing wholesale `new_state` replacement and `play_counter` field (`.planning/PROJECT.md`, `AGENTS.md` CONVENTIONS) — HIGH confidence
+- Project constraints (read-only WS, REST optimistic apply retained, 5 event variants, per-game socket): `.planning/PROJECT.md` v1.1 milestone — authoritative
 
 ---
-*Feature research for: Vue 3 SPA automated test suite*
-*Researched: 2026-07-13*
+*Feature research for: realtime WebSocket UI updates on a backend-authoritative turn-based game SPA*
+*Researched: 2026-07-18*
