@@ -23,7 +23,7 @@ A single shared **monotonic reducer** (STA-01/STA-02), gated on `play_counter`, 
 
 ## Phases
 
-- [ ] **Phase 6: Pure Foundations — WS URL + Envelope Parsing** - Vue-free `toWebSocketUrl` and `gameEvents.parseEvent`, zero-mock unit tests
+- [x] **Phase 6: Pure Foundations — WS URL + Envelope Parsing** - Vue-free `toWebSocketUrl` and `gameEvents.parseEvent`, zero-mock unit tests
 - [ ] **Phase 7: Monotonic Reducer (KEYSTONE)** - Single shared `play_counter`-gated apply path; REST refactored to use it; ordering/idempotency tests
 - [ ] **Phase 8: Event Dispatch Glue** - Map all 5 envelope variants to store actions; `PlayRun` unwraps full resulting `GameState`
 - [ ] **Phase 9: useGameSocket Composable** - Lifecycle, backoff-reconnect, resync-on-open via `GET /state`; stubbed-socket store tests
