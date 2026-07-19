@@ -10,7 +10,7 @@ Requirements for the Realtime milestone. Each maps to a roadmap phase. REQ-IDs c
 
 ### WebSocket Client & Connection
 
-- [ ] **WS-01**: A pure `toWebSocketUrl` helper derives the socket URL from `VITE_API_BASE_URL` (http→ws, https→wss) and appends the `/game/ws` path — no new env var, unit-tested
+- [x] **WS-01**: A pure `toWebSocketUrl` helper derives the socket URL from `VITE_API_BASE_URL` (http→ws, https→wss) and appends the `/game/ws` path — no new env var, unit-tested
 - [ ] **WS-02**: A `useGameSocket()` composable opens a read-only WebSocket to `/game/ws` when a game is active and closes it on route-leave / unmount (no leaked or duplicate sockets, incl. across Vite HMR)
 - [ ] **WS-03**: The socket auto-reconnects with exponential backoff (capped) after an unexpected drop
 - [ ] **WS-04**: On every (re)connect, the app resyncs authoritative state via `GET /state`, routed through the same monotonic apply guard so a stale snapshot cannot clobber newer live state
@@ -70,7 +70,7 @@ Filled during roadmap creation (2026-07-19).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WS-01 | Phase 6 | Pending |
+| WS-01 | Phase 6 | Complete |
 | WS-02 | Phase 9 | Pending |
 | WS-03 | Phase 9 | Pending |
 | WS-04 | Phase 9 | Pending |
