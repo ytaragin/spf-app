@@ -42,7 +42,10 @@ A single shared **monotonic reducer** (STA-01/STA-02), gated on `play_counter`, 
   2. `gameEvents.parseEvent(raw)` unwraps the tagged `{ event, data }` envelope into a normalized shape for known variants
   3. Malformed or unknown envelopes are rejected (logged + ignored) without throwing
   4. Both modules are covered by unit tests with zero mocking (pure logic), consistent with `playOutcome.js`
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Pure `toWebSocketUrl` module + zero-mock tests (WS-01)
+- [ ] 06-02-PLAN.md — Pure `gameEvents.parseEvent` module + zero-mock tests (EVT-01)
 **Parallelization**: `toWebSocketUrl` (WS-01) and `gameEvents.parseEvent` (EVT-01) are independent pure modules — Wave 1 can build/test both in parallel.
 
 ### Phase 7: Monotonic Reducer (KEYSTONE)
@@ -110,7 +113,7 @@ A single shared **monotonic reducer** (STA-01/STA-02), gated on `play_counter`, 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. Pure Foundations | 0/? | Not started | - |
+| 6. Pure Foundations | 0/2 | Not started | - |
 | 7. Monotonic Reducer (KEYSTONE) | 0/? | Not started | - |
 | 8. Event Dispatch Glue | 0/? | Not started | - |
 | 9. useGameSocket Composable | 0/? | Not started | - |
