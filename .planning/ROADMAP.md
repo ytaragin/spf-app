@@ -68,8 +68,12 @@ Plans:
 
 **Plans**: 2 plans
 Plans:
+**Wave 1**
 
 - [ ] 07-01-PLAN.md — Pure `applyGameState` monotonic reducer + zero-mock tests (STA-01, STA-02, RTT-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 07-02-PLAN.md — Refactor `fetchGame`/`updateGameStateFromPlayResult` to route through the reducer; confirm folded-in RTT-01 pure coverage (STA-01, RTT-01)
 
 **Note**: Hard gate — nothing downstream may write `gameState` except through this reducer. REST optimistic behavior is preserved (additive refactor, not a rewrite).
