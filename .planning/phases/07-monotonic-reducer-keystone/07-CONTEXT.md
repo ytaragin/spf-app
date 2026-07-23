@@ -70,12 +70,22 @@ E2E (Phase 11). REST optimistic-apply behavior itself is preserved — this phas
   only `updateGameStateFromPlayResult`'s body changes.
 
 ### playResults array vs gameState gating
-- **D-09:** `fetchPlayResult()`'s existing separate gate (comparing `newPlay.new_state.play_counter`
-  against the most recent entry in the `playResults` array before pushing) is **kept independent**
-  from the new `applyGameState` gate — do NOT consolidate or derive one from the other. They guard
-  different data: the array-push gate controls whether a new history entry is appended (display/
-  replay), the reducer gate controls whether `gameState` itself updates. Low risk, preserves
-  existing tested behavior exactly.
+- **D-09 (SUPERSEDED — see D-09b):** `fetchPlayResult()`'s existing separate gate (comparing
+  `newPlay.new_state.play_counter` against the most recent entry in the `playResults` array before
+  pushing) was originally **kept independent** from the new `applyGameState` gate — chosen for low
+  risk, to preserve existing tested behavior exactly. This decision was reversed post-execution (see
+  D-09b below).
+- **D-09b (post-execution reversal, supersedes D-09):** The independent array-push comparison in
+  `fetchPlayResult()` was removed and the array-push gate is now **derived from the reducer's
+  verdict**. `updateGameStateFromPlayResult` returns whether `applyGameState` actually applied the
+  incoming state (reference comparison: `applied !== gameState.value`), and `fetchPlayResult` pushes
+  onto `playResults` only when that returns `true`. Rationale: eliminate the duplicated `play_counter`
+  math so "is this a new play?" has a single source of truth (the reducer). Semantic shift: the
+  array gate now compares incoming vs `gameState.value.play_counter` (the reducer baseline) rather
+  than vs the last `playResults` entry — normally lockstep, but they can diverge after
+  `fetchAllPlayResults` replaces the array wholesale; the array now tracks `gameState` advancement.
+  Covered by 4 new `fetchPlayResult` tests (apply+push, duplicate reject, stale reject, missing
+  `new_state`). Commit `b240ff5`.
 
 ### the agent's Discretion
 - Exact filename for the reducer module (`monotonicReducer.js` vs alternatives) and internal
@@ -116,8 +126,9 @@ E2E (Phase 11). REST optimistic-apply behavior itself is preserved — this phas
 ### Existing gameState write sites (to be refactored)
 - `src/stores/gameStore.js:54-59` (`fetchGame`) — currently `gameState.value = response.data`
   unconditionally; becomes the bootstrap-apply call site (D-07).
-- `src/stores/gameStore.js:268-289` (`fetchPlayResult`) — has its own `play_counter` array-push
-  gate (kept independent per D-09) and calls `updateGameStateFromPlayResult`.
+- `src/stores/gameStore.js:268-289` (`fetchPlayResult`) — originally had its own `play_counter`
+  array-push gate; per D-09b that gate was removed and the push is now derived from
+  `updateGameStateFromPlayResult`'s reducer-applied return value.
 - `src/stores/gameStore.js:291-302` (`fetchAllPlayResults`) — also calls
   `updateGameStateFromPlayResult` on the most recent play.
 - `src/stores/gameStore.js:350-357` (`updateGameStateFromPlayResult`) — the refactor target

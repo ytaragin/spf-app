@@ -57,10 +57,10 @@
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Keep both gates, don't consolidate | Array-push gate (history) and state-apply gate (gameState) stay independent | ✓ |
-| Derive array-push gate from reducer's applied signal | Consolidate the two gates | |
+| Keep both gates, don't consolidate | Array-push gate (history) and state-apply gate (gameState) stay independent | ✓ (original) |
+| Derive array-push gate from reducer's applied signal | Consolidate the two gates | ✓ (revised, D-09b) |
 
-**User's choice:** Keep both gates independent — low risk, preserves existing tested behavior in `fetchPlayResult()`.
+**User's choice:** Originally kept both gates independent (D-09) — low risk, preserves existing tested behavior in `fetchPlayResult()`. **Reversed post-execution (D-09b, commit `b240ff5`):** consolidated so the array-push gate is derived from the reducer's applied verdict — single source of truth for "is this a new play?". See CONTEXT.md D-09b for the semantic-shift note.
 
 ---
 
