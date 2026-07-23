@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import axios from 'axios'
 import { SPFMetadata } from '../game/SPFMetadata.js'
+import { applyGameState } from '../game/gameStateReducer.js'
 
 export const useGameStore = defineStore('game', () => {
   // SPFMetadata instance
@@ -55,7 +56,7 @@ export const useGameStore = defineStore('game', () => {
     // fetch game data from the server
     let url = `${baseUrl}/game/state`
     const response = await axios.get(url)
-    gameState.value = response.data
+    gameState.value = applyGameState(gameState.value, response.data)
   }
 
   async function setLineup(lineup, isDefense) {
@@ -350,7 +351,7 @@ export const useGameStore = defineStore('game', () => {
   // Shared function to update game state from play result
   function updateGameStateFromPlayResult(playResult) {
     if (playResult && playResult.new_state) {
-      gameState.value = { ...playResult.new_state }
+      gameState.value = applyGameState(gameState.value, playResult.new_state)
       return true
     }
     return false
