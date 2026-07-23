@@ -271,21 +271,11 @@ export const useGameStore = defineStore('game', () => {
     const response = await axios.get(url)
     const newPlay = Array.isArray(response.data) ? response.data[0] : response.data
 
-    // Add the new play to the existing array of play results only if play_counter has increased
-    if (newPlay && newPlay.new_state && newPlay.new_state.play_counter) {
-      const newPlayCounter = newPlay.new_state.play_counter
-      const mostRecentPlay =
-        playResults.value.length > 0 ? playResults.value[playResults.value.length - 1] : null
-      const mostRecentPlayCounter =
-        mostRecentPlay && mostRecentPlay.new_state ? mostRecentPlay.new_state.play_counter : 0
-
-      // Only add if this is a new play (higher play counter)
-      if (newPlayCounter > mostRecentPlayCounter) {
-        playResults.value.push(newPlay)
-
-        // Update the current game state with the new state from the play result
-        updateGameStateFromPlayResult(newPlay)
-      }
+    // Apply through the reducer first; the array-push gate is derived from
+    // whether the reducer actually advanced gameState (single source of truth
+    // for "is this a new play?"). No independent play_counter comparison here.
+    if (updateGameStateFromPlayResult(newPlay)) {
+      playResults.value.push(newPlay)
     }
   }
 
@@ -348,11 +338,16 @@ export const useGameStore = defineStore('game', () => {
     return playResults.value
   })
 
-  // Shared function to update game state from play result
+  // Shared function to update game state from play result.
+  // Returns true only when the reducer actually applied the incoming state
+  // (i.e. play_counter advanced), so callers can derive downstream decisions
+  // — like appending to playResults — from the single reducer gate.
   function updateGameStateFromPlayResult(playResult) {
     if (playResult && playResult.new_state) {
-      gameState.value = applyGameState(gameState.value, playResult.new_state)
-      return true
+      const applied = applyGameState(gameState.value, playResult.new_state)
+      const didApply = applied !== gameState.value
+      gameState.value = applied
+      return didApply
     }
     return false
   }

@@ -101,6 +101,48 @@ describe('gameStore success paths', () => {
       expect(store.isRunningPlay).toBe(false)
     })
   })
+
+  describe('fetchPlayResult (reducer-derived array gate)', () => {
+    const play = (counter) => ({ result_type: 'Run', new_state: { play_counter: counter } })
+
+    it('applies a newer play and pushes it onto playResults', async () => {
+      axios.get.mockResolvedValueOnce({ data: [play(1)] })
+      const store = useGameStore()
+      await store.fetchPlayResult()
+      expect(store.getAllPlayResults).toHaveLength(1)
+      expect(store.gameState.play_counter).toBe(1)
+    })
+
+    it('rejects a duplicate play_counter — no push, gameState unchanged', async () => {
+      const store = useGameStore()
+      axios.get.mockResolvedValueOnce({ data: [play(2)] })
+      await store.fetchPlayResult()
+      const stateAfterFirst = store.gameState
+      // Same counter arrives again (duplicate delivery)
+      axios.get.mockResolvedValueOnce({ data: [play(2)] })
+      await store.fetchPlayResult()
+      expect(store.getAllPlayResults).toHaveLength(1)
+      // reducer no-op returns the exact same reference
+      expect(store.gameState).toBe(stateAfterFirst)
+    })
+
+    it('rejects a stale (lower) play_counter — no push', async () => {
+      const store = useGameStore()
+      axios.get.mockResolvedValueOnce({ data: [play(5)] })
+      await store.fetchPlayResult()
+      axios.get.mockResolvedValueOnce({ data: [play(3)] })
+      await store.fetchPlayResult()
+      expect(store.getAllPlayResults).toHaveLength(1)
+      expect(store.gameState.play_counter).toBe(5)
+    })
+
+    it('does not push when new_state is missing', async () => {
+      axios.get.mockResolvedValueOnce({ data: [{ result_type: 'Run' }] })
+      const store = useGameStore()
+      await store.fetchPlayResult()
+      expect(store.getAllPlayResults).toHaveLength(0)
+    })
+  })
 })
 
 describe('gameStore error branches', () => {
