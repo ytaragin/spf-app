@@ -23,8 +23,8 @@ Requirements for the Realtime milestone. Each maps to a roadmap phase. REQ-IDs c
 
 ### State Application (Convergence)
 
-- [ ] **STA-01**: A single shared monotonic reducer applies incoming `GameState` gated on `play_counter` (reject states not newer than current); BOTH the existing REST play path and the new WS path funnel through it
-- [ ] **STA-02**: Applying the same or an older state is a safe no-op (idempotent/convergent) — no flicker, no regression, verified when REST and WS deliver the same play
+- [x] **STA-01**: A single shared monotonic reducer applies incoming `GameState` gated on `play_counter` (reject states not newer than current); BOTH the existing REST play path and the new WS path funnel through it
+- [x] **STA-02**: Applying the same or an older state is a safe no-op (idempotent/convergent) — no flicker, no regression, verified when REST and WS deliver the same play
 
 ### Connection Status UI
 
@@ -33,7 +33,7 @@ Requirements for the Realtime milestone. Each maps to a roadmap phase. REQ-IDs c
 
 ### Realtime Tests
 
-- [ ] **RTT-01**: Unit tests cover `toWebSocketUrl` and `gameEvents.js` parse/dispatch with zero mocking (pure logic), and the monotonic reducer's ordering/idempotency behavior
+- [x] **RTT-01**: Unit tests cover `toWebSocketUrl` and `gameEvents.js` parse/dispatch with zero mocking (pure logic), and the monotonic reducer's ordering/idempotency behavior
 - [ ] **RTT-02**: Store-level tests drive `useGameSocket()`/apply paths with a stubbed WebSocket (`vi.stubGlobal`), covering connect, event apply, drop→reconnect, and resync
 - [ ] **RTT-03**: A Playwright E2E uses `page.routeWebSocket()` to impersonate the WS server, asserting the UI updates from an opponent `PlayRun` event and that the status indicator reflects a forced disconnect/reconnect
 
@@ -77,11 +77,11 @@ Filled during roadmap creation (2026-07-19).
 | EVT-01 | Phase 6 | Complete |
 | EVT-02 | Phase 8 | Pending |
 | EVT-03 | Phase 8 | Pending |
-| STA-01 | Phase 7 | Pending |
-| STA-02 | Phase 7 | Pending |
+| STA-01 | Phase 7 | Complete |
+| STA-02 | Phase 7 | Complete |
 | CON-01 | Phase 10 | Pending |
 | CON-02 | Phase 10 | Pending |
-| RTT-01 | Phase 7 | Pending |
+| RTT-01 | Phase 7 | Complete |
 | RTT-02 | Phase 9 | Pending |
 | RTT-03 | Phase 11 | Pending |
 

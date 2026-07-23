@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Realtime
-current_phase: 06
+current_phase: 07
 status: executing
-stopped_at: Phase 7 context gathered
-last_updated: "2026-07-23T16:22:58.958Z"
-last_activity: 2026-07-19
-last_activity_desc: Phase 06 marked complete
+stopped_at: "Completed 07-01-PLAN.md"
+last_updated: "2026-07-23T19:14:24.756Z"
+last_activity: 2026-07-23
+last_activity_desc: Phase 07 Plan 01 (monotonic reducer keystone) complete
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 17
-current_phase_name: pure-foundations-ws-url-envelope-parsing
+current_phase_name: monotonic-reducer-keystone
 ---
 
 # Project State
@@ -24,14 +24,14 @@ current_phase_name: pure-foundations-ws-url-envelope-parsing
 See: .planning/PROJECT.md (updated 2026-07-18)
 
 **Core value:** The UI reflects server-side game events — especially the opponent's actions — in real time over a read-only WebSocket, while all client operations continue over REST and the backend-authoritative model is preserved.
-**Current focus:** Phase 06 — pure-foundations-ws-url-envelope-parsing
+**Current focus:** Phase 07 — monotonic-reducer-keystone
 
 ## Current Position
 
-Phase: 06 — COMPLETE
-Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-07-19 — Phase 06 marked complete
+Phase: 07 — monotonic-reducer-keystone (in progress)
+Plan: 1 of 2 complete (07-01 done; 07-02 pending — gameStore REST refactor)
+Status: Executing
+Last activity: 2026-07-23 — Phase 07 Plan 01 (applyGameState reducer) complete
 
 ## Roadmap Summary
 
@@ -59,6 +59,7 @@ v1.1 phases continue numbering from v1.0 (ended at Phase 5):
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 06 P02 | 5m | 1 tasks | 2 files |
+| Phase 07 P01 | 10m | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,7 @@ Recent decisions affecting current work:
 - [Research]: Add exactly one runtime dependency — `@vueuse/core` (`useWebSocket`) — for reactive status + capped exponential backoff; native `WebSocket` is the zero-dep fallback. Avoid `socket.io-client` / `reconnecting-websocket`.
 - [Research/KEYSTONE]: Idempotency alone is unsafe against stale-but-different states. Extract a single shared monotonic `applyGameState`/`applyPlayResult` reducer gated on `play_counter`; both REST and WS funnel through it. `fetchPlayResult` already half-built this guard (~lines 273–288).
 - [Research]: Testing reuses existing toolchain — `vi.stubGlobal('WebSocket', FakeWebSocket)` + fake timers for unit/store; Playwright `page.routeWebSocket()` (≥1.48, installed 1.61.1) for E2E.
+- [07-01]: Reducer module named `src/game/gameStateReducer.js` (per plan frontmatter, superseding CONTEXT.md's discretionary example name `monotonicReducer.js`). Single export `applyGameState(current, incoming)`; internal private helper `isNewer`.
 
 ### Pending Todos
 
@@ -95,9 +97,9 @@ Open gaps to resolve during phase discussion (from research SUMMARY.md — don't
 
 ## Session Continuity
 
-Last session: 2026-07-23T16:02:57.008Z
-Stopped at: Phase 7 context gathered
-Resume file: /home/taragin/dev/spf-app/.planning/phases/07-monotonic-reducer-keystone/07-CONTEXT.md
+Last session: 2026-07-23T19:14:24.756Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
