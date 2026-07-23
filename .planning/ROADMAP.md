@@ -66,7 +66,12 @@ Plans:
   3. Out-of-order applies converge to the newest state regardless of arrival order
   4. Unit tests cover the reducer's ordering and idempotency behavior, and (folded from Phase 6) the pure `toWebSocketUrl`/`gameEvents` parse — satisfying RTT-01's pure + reducer coverage
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+
+- [ ] 07-01-PLAN.md — Pure `applyGameState` monotonic reducer + zero-mock tests (STA-01, STA-02, RTT-01)
+- [ ] 07-02-PLAN.md — Refactor `fetchGame`/`updateGameStateFromPlayResult` to route through the reducer; confirm folded-in RTT-01 pure coverage (STA-01, RTT-01)
+
 **Note**: Hard gate — nothing downstream may write `gameState` except through this reducer. REST optimistic behavior is preserved (additive refactor, not a rewrite).
 
 ### Phase 8: Event Dispatch Glue
@@ -134,7 +139,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Pure Foundations | 2/2 | In Progress|  |
-| 7. Monotonic Reducer (KEYSTONE) | 0/? | Not started | - |
+| 7. Monotonic Reducer (KEYSTONE) | 0/2 | Planned | - |
 | 8. Event Dispatch Glue | 0/? | Not started | - |
 | 9. useGameSocket Composable | 0/? | Not started | - |
 | 10. Connection Status Indicator | 0/? | Not started | - |
