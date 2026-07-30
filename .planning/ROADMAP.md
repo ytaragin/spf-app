@@ -94,8 +94,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 08-01-PLAN.md — PlayRun slice: pure `dispatchEvent` module + `applyPlayResult` store action (EVT-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 08-02-PLAN.md — GameStarted + lineup slice: `applyIncomingGameState` / `applyLineup` + 3 dispatch branches
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 08-03-PLAN.md — NextPlayTypeSet slice, 5-variant coverage proof, D-13 flow-regression discharge
 
 ### Phase 9: useGameSocket Composable
