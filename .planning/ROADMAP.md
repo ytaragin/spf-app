@@ -91,7 +91,12 @@ Plans:
   3. All `GameState`-bearing variants land through the monotonic reducer (never a raw wholesale replace)
   4. Per-variant tests against a fake store verify correct extraction and dispatch (folds into RTT-01/RTT-02 coverage)
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — PlayRun slice: pure `dispatchEvent` module + `applyPlayResult` store action (EVT-03)
+- [ ] 08-02-PLAN.md — GameStarted + lineup slice: `applyIncomingGameState` / `applyLineup` + 3 dispatch branches
+- [ ] 08-03-PLAN.md — NextPlayTypeSet slice, 5-variant coverage proof, D-13 flow-regression discharge
 
 ### Phase 9: useGameSocket Composable
 
