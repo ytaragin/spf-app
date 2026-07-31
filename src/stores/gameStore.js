@@ -266,17 +266,34 @@ export const useGameStore = defineStore('game', () => {
     // gameMsg.value = response.data;
   }
 
+  /**
+   * Local-apply only — does not POST. Shared apply+push path for a play result,
+   * used by both the REST `fetchPlayResult` and the WebSocket dispatch, so a play
+   * delivered twice cannot double-push.
+   *
+   * @param {object} playAndState  a PlayAndState carrying `new_state`
+   * @returns {boolean} whether the reducer actually advanced `gameState`
+   */
+  function applyPlayResult(playAndState) {
+    // Apply through the reducer first; the array-push gate is derived from
+    // whether the reducer actually advanced gameState (single source of truth
+    // for "is this a new play?"). No independent play_counter comparison here.
+    // The lineupSubmitted reset is gated on that same verdict, so a duplicate or
+    // stale delivery is a true zero-op that never collapses the UI (D-13, D-14).
+    if (updateGameStateFromPlayResult(playAndState)) {
+      playResults.value.push(playAndState)
+      lineupSubmitted.value = false
+      return true
+    }
+    return false
+  }
+
   async function fetchPlayResult() {
     let url = `${baseUrl}/game/plays?result=true&count=1`
     const response = await axios.get(url)
     const newPlay = Array.isArray(response.data) ? response.data[0] : response.data
 
-    // Apply through the reducer first; the array-push gate is derived from
-    // whether the reducer actually advanced gameState (single source of truth
-    // for "is this a new play?"). No independent play_counter comparison here.
-    if (updateGameStateFromPlayResult(newPlay)) {
-      playResults.value.push(newPlay)
-    }
+    applyPlayResult(newPlay)
   }
 
   async function fetchAllPlayResults() {
@@ -403,6 +420,8 @@ export const useGameStore = defineStore('game', () => {
     getPlayResult,
     getAllPlayResults,
     updateGameStateFromPlayResult,
+    // Local-apply actions (do not POST)
+    applyPlayResult,
     // Hover state and functions
     hoveredBox,
     relatedBox,

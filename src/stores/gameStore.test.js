@@ -143,6 +143,62 @@ describe('gameStore success paths', () => {
       expect(store.getAllPlayResults).toHaveLength(0)
     })
   })
+
+  describe('applyPlayResult (local-apply, no POST)', () => {
+    const play = (counter) => ({ result_type: 'Run', new_state: { play_counter: counter } })
+
+    it('applies a newer play, pushes it, and returns true', () => {
+      const store = useGameStore()
+      expect(store.applyPlayResult(play(1))).toBe(true)
+      expect(store.gameState.play_counter).toBe(1)
+      expect(store.getAllPlayResults).toHaveLength(1)
+    })
+
+    it('rejects a duplicate play_counter — returns false, no push, same state reference', () => {
+      const store = useGameStore()
+      store.applyPlayResult(play(2))
+      const stateBefore = store.gameState
+      expect(store.applyPlayResult(play(2))).toBe(false)
+      expect(store.getAllPlayResults).toHaveLength(1)
+      expect(store.gameState).toBe(stateBefore)
+    })
+
+    it('rejects a stale (lower) play_counter — returns false, no push, same state reference', () => {
+      const store = useGameStore()
+      store.applyPlayResult(play(5))
+      const stateBefore = store.gameState
+      expect(store.applyPlayResult(play(3))).toBe(false)
+      expect(store.getAllPlayResults).toHaveLength(1)
+      // a lower counter cannot regress gameState (ordering guarantee)
+      expect(store.gameState).toBe(stateBefore)
+    })
+
+    it('clears lineupSubmitted when the reducer actually advanced (D-13)', () => {
+      const store = useGameStore()
+      store.applyPlayResult(play(1))
+      store.setLineupSubmitted(true)
+      store.applyPlayResult(play(2))
+      expect(store.lineupSubmitted).toBe(false)
+    })
+
+    it('leaves lineupSubmitted set on a duplicate or stale delivery (D-14)', () => {
+      const store = useGameStore()
+      store.applyPlayResult(play(5))
+      store.setLineupSubmitted(true)
+      store.applyPlayResult(play(5))
+      expect(store.lineupSubmitted).toBe(true)
+      store.applyPlayResult(play(3))
+      expect(store.lineupSubmitted).toBe(true)
+    })
+
+    it('returns false and pushes nothing when new_state is missing', () => {
+      const store = useGameStore()
+      store.setLineupSubmitted(true)
+      expect(store.applyPlayResult({ result_type: 'Run' })).toBe(false)
+      expect(store.getAllPlayResults).toHaveLength(0)
+      expect(store.lineupSubmitted).toBe(true)
+    })
+  })
 })
 
 describe('gameStore error branches', () => {
