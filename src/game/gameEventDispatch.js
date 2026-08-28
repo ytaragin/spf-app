@@ -11,14 +11,23 @@
  */
 
 /**
+ * True when `value` is a usable payload object (non-null, not an array-free
+ * primitive). Shared by the per-variant guard clauses below; each caller still
+ * emits its own variant-specific message so the event tag always appears in the
+ * log output.
+ */
+function isPayloadObject(value) {
+  return value !== null && typeof value === 'object'
+}
+
+/**
  * Route a validated WebSocket event envelope to the matching store action.
  *
  * Validates the envelope shape, then the per-variant payload, before touching
  * the store: on any mismatch it logs (interpolating only the event tag and/or a
  * `typeof` — never the payload) and returns `false` with zero store actions
- * called. Currently only the `PlayRun` branch is implemented; the remaining
- * variants fall through to the unknown-tag branch until plans 08-02 / 08-03
- * wire them.
+ * called. The `NextPlayTypeSet` variant falls through to the unknown-tag branch
+ * until plan 08-03 wires it.
  *
  * @param {object} store  the gameStore instance, injected (not imported)
  * @param {{ event: string, data: * }} event  an already-parsed envelope
@@ -61,6 +70,45 @@ export function dispatchEvent(store, event) {
       // Pass the whole PlayAndState; the boolean verdict is the store action's
       // own reducer-derived didApply, never an independent comparison here.
       return store.applyPlayResult(data) === true
+    }
+
+    case 'GameStarted': {
+      if (!isPayloadObject(data)) {
+        console.error(
+          `dispatchEvent: ignoring GameStarted — data is not a game state object (received ${typeof data})`
+        )
+        return false
+      }
+
+      // Straight to the monotonic reducer wrapper. Deliberately NOT wrapped as a
+      // play result: that would push a play-less object onto playResults and
+      // trip the lineupSubmitted reset (D-16). No fetch, no collateral resets.
+      return store.applyIncomingGameState(data) === true
+    }
+
+    case 'OffensiveLineupSet': {
+      if (!isPayloadObject(data)) {
+        console.error(
+          `dispatchEvent: ignoring OffensiveLineupSet — data is not a lineup object (received ${typeof data})`
+        )
+        return false
+      }
+
+      // Local-apply only; the POSTing setLineup sibling is never reachable here.
+      store.applyLineup('offense', data)
+      return true
+    }
+
+    case 'DefensiveLineupSet': {
+      if (!isPayloadObject(data)) {
+        console.error(
+          `dispatchEvent: ignoring DefensiveLineupSet — data is not a lineup object (received ${typeof data})`
+        )
+        return false
+      }
+
+      store.applyLineup('defense', data)
+      return true
     }
 
     default:
