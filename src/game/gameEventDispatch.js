@@ -8,6 +8,11 @@
  * state writes go through injected local-apply store actions — never a raw
  * assignment and never a POSTing `set*` action. Never throws — malformed
  * envelopes and unusable payloads are logged via `console.error` and ignored.
+ *
+ * Covers exactly the 5 `KNOWN_VARIANTS` declared in `gameEvents.js` — one branch
+ * per variant, no more and no less. The two lists must stay in lockstep: a
+ * variant added there without a branch here silently falls into the unknown-tag
+ * reject.
  */
 
 /**
@@ -26,8 +31,8 @@ function isPayloadObject(value) {
  * Validates the envelope shape, then the per-variant payload, before touching
  * the store: on any mismatch it logs (interpolating only the event tag and/or a
  * `typeof` — never the payload) and returns `false` with zero store actions
- * called. The `NextPlayTypeSet` variant falls through to the unknown-tag branch
- * until plan 08-03 wires it.
+ * called. The `NextPlayTypeSet` variant forwards its payload unchanged so the
+ * store action owns normalization.
  *
  * @param {object} store  the gameStore instance, injected (not imported)
  * @param {{ event: string, data: * }} event  an already-parsed envelope
@@ -108,6 +113,21 @@ export function dispatchEvent(store, event) {
       }
 
       store.applyLineup('defense', data)
+      return true
+    }
+
+    case 'NextPlayTypeSet': {
+      const bare = typeof data === 'string' && data !== ''
+      const wrapped =
+        isPayloadObject(data) && typeof data.next_type === 'string' && data.next_type !== ''
+      if (!bare && !wrapped) {
+        console.error(`dispatchEvent: ignoring NextPlayTypeSet — data is not a play type`)
+        return false
+      }
+
+      // Pass `data` through unchanged — the local-apply store action owns the
+      // single implementation of the string / { next_type } normalization (D-10).
+      store.applyNextPlayType(data)
       return true
     }
 
