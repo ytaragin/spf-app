@@ -168,6 +168,29 @@ export const useGameStore = defineStore('game', () => {
     // convert lineup object to JSON and send it to the server
   }
 
+  /**
+   * Local-apply only — does not POST. The single write site for `nextPlayType`,
+   * shared by the REST `fetchPlayTypes` / `setPlayType` and the WebSocket
+   * `NextPlayTypeSet` event (D-06). Scope is deliberately `nextPlayType` alone:
+   * `playTypes` keeps its inline assignments in `fetchPlayTypes` because it has a
+   * single write site already and extracting it would add an action with no
+   * second caller. The POSTing sibling remains `setPlayType` (D-05, D-07).
+   *
+   * Accepts either a bare play-type string or the `{ next_type }` object shape
+   * returned by `/game/nexttype` (D-10); anything else normalizes to `null`.
+   *
+   * @param {string|{ next_type: string }|null|undefined} type
+   */
+  function applyNextPlayType(type) {
+    let normalized = null
+    if (typeof type === 'string' && type !== '') {
+      normalized = type
+    } else if (type !== null && typeof type === 'object' && typeof type.next_type === 'string') {
+      normalized = type.next_type || null
+    }
+    nextPlayType.value = normalized
+  }
+
   async function fetchPlayTypes() {
     let url = `${baseUrl}/game/nexttype`
 
@@ -175,12 +198,12 @@ export const useGameStore = defineStore('game', () => {
       const response = await axios.get(url)
 
       playTypes.value = response.data.allowed_types || []
-      nextPlayType.value = response.data.next_type || null
+      applyNextPlayType(response.data.next_type)
     } catch (err) {
       // handle error here
       console.error('Error fetching play types:', err)
       playTypes.value = [] // Ensure it's always an array
-      nextPlayType.value = null // Reset next play type on error
+      applyNextPlayType(null) // Reset next play type on error
       if (err.response) {
         // handle 400 error here
         let msg = err.response.data
@@ -365,6 +388,8 @@ export const useGameStore = defineStore('game', () => {
         }
       })
       gameMsg.value = response.data || 'Play type set successfully'
+      // Optimistic local write so REST and WS share one nextPlayType write site (D-06).
+      applyNextPlayType(playType)
     } catch (err) {
       console.error('Error setting play type:', err)
       if (err.response) {
@@ -454,7 +479,7 @@ export const useGameStore = defineStore('game', () => {
     applyPlayResult,
     applyIncomingGameState,
     applyLineup,
-    // Hover state and functions
+    applyNextPlayType, // Hover state and functions
     hoveredBox,
     relatedBox,
     setHoveredBox,
