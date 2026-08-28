@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { dispatchEvent } from '@/game/gameEventDispatch.js'
 import { buildGameState } from '../../test/factories/gameState.js'
+import { buildLineup } from '../../test/factories/lineup.js'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -118,7 +119,7 @@ describe('dispatchEvent — PlayRun', () => {
   })
 
   describe('variants deferred to plans 08-02 / 08-03', () => {
-    const deferred = ['GameStarted', 'OffensiveLineupSet', 'DefensiveLineupSet', 'NextPlayTypeSet']
+    const deferred = ['NextPlayTypeSet']
 
     for (const event of deferred) {
       it(`ignores ${event} for now and returns false`, () => {
@@ -129,4 +130,103 @@ describe('dispatchEvent — PlayRun', () => {
       })
     }
   })
+})
+
+describe('dispatchEvent — GameStarted', () => {
+  it('routes to applyIncomingGameState with the data itself and returns its verdict', () => {
+    const store = makeFakeStore()
+    const data = buildGameState({ play_counter: 0 })
+    expect(dispatchEvent(store, { event: 'GameStarted', data })).toBe(true)
+    expect(store.calls).toHaveLength(1)
+    expect(store.calls[0][0]).toBe('applyIncomingGameState')
+    expect(store.calls[0][1]).toBe(data)
+  })
+
+  it('never routes through applyPlayResult (D-16)', () => {
+    const store = makeFakeStore()
+    dispatchEvent(store, { event: 'GameStarted', data: buildGameState({ play_counter: 0 }) })
+    expect(store.calls.some((call) => call[0] === 'applyPlayResult')).toBe(false)
+  })
+
+  it('returns false when the store action reports a reducer no-op', () => {
+    const store = makeFakeStore({
+      applyIncomingGameState: () => false
+    })
+    expect(
+      dispatchEvent(store, { event: 'GameStarted', data: buildGameState({ play_counter: 0 }) })
+    ).toBe(false)
+  })
+
+  it('is idempotent in shape — a repeat delivery still routes to the same action', () => {
+    const store = makeFakeStore()
+    const data = buildGameState({ play_counter: 1 })
+    dispatchEvent(store, { event: 'GameStarted', data })
+    dispatchEvent(store, { event: 'GameStarted', data })
+    expect(store.calls).toHaveLength(2)
+    expect(store.calls.every((call) => call[0] === 'applyIncomingGameState')).toBe(true)
+  })
+})
+
+describe('dispatchEvent — lineup variants', () => {
+  it('routes OffensiveLineupSet to applyLineup with the offense side', () => {
+    const store = makeFakeStore()
+    const data = buildLineup()
+    expect(dispatchEvent(store, { event: 'OffensiveLineupSet', data })).toBe(true)
+    expect(store.calls).toHaveLength(1)
+    expect(store.calls[0][0]).toBe('applyLineup')
+    expect(store.calls[0][1]).toBe('offense')
+    expect(store.calls[0][2]).toBe(data)
+  })
+
+  it('routes DefensiveLineupSet to applyLineup with the defense side', () => {
+    const store = makeFakeStore()
+    const data = buildLineup()
+    expect(dispatchEvent(store, { event: 'DefensiveLineupSet', data })).toBe(true)
+    expect(store.calls).toHaveLength(1)
+    expect(store.calls[0][0]).toBe('applyLineup')
+    expect(store.calls[0][1]).toBe('defense')
+    expect(store.calls[0][2]).toBe(data)
+  })
+
+  it('is naturally idempotent — a repeat delivery stores the identical lineup', () => {
+    const store = makeFakeStore()
+    const data = buildLineup()
+    dispatchEvent(store, { event: 'OffensiveLineupSet', data })
+    dispatchEvent(store, { event: 'OffensiveLineupSet', data })
+    expect(store.calls).toHaveLength(2)
+    expect(store.calls[0][2]).toBe(store.calls[1][2])
+  })
+})
+
+describe('dispatchEvent — malformed data for the state and lineup variants', () => {
+  const tags = ['GameStarted', 'OffensiveLineupSet', 'DefensiveLineupSet']
+  const payloads = [
+    ['null', null],
+    ['undefined', undefined],
+    ['a number', 42],
+    ['a string', 'nope']
+  ]
+
+  for (const tag of tags) {
+    for (const [label, data] of payloads) {
+      it(`ignores ${tag} with ${label} data — false, one log, zero store calls`, () => {
+        const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+        const store = makeFakeStore()
+        expect(() => dispatchEvent(store, { event: tag, data })).not.toThrow()
+        expect(dispatchEvent(store, { event: tag, data })).toBe(false)
+        expect(store.calls).toHaveLength(0)
+        expect(spy).toHaveBeenCalled()
+      })
+    }
+
+    it(`logs the ${tag} tag but never a payload value`, () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const store = makeFakeStore()
+      dispatchEvent(store, { event: tag, data: 'top-secret-value' })
+      const message = spy.mock.calls[0].join(' ')
+      expect(message).toContain(tag)
+      expect(message).not.toContain('top-secret-value')
+      expect(store.calls).toHaveLength(0)
+    })
+  }
 })
