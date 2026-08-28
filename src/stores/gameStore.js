@@ -56,7 +56,37 @@ export const useGameStore = defineStore('game', () => {
     // fetch game data from the server
     let url = `${baseUrl}/game/state`
     const response = await axios.get(url)
-    gameState.value = applyGameState(gameState.value, response.data)
+    applyIncomingGameState(response.data)
+  }
+
+  /**
+   * Local-apply only — does not POST. The single write site for a `gameState`
+   * bootstrap/announcement, shared by the REST `fetchGame`, the WebSocket
+   * `GameStarted` event, and (Phase 9) the `GET /state` resync — hence the
+   * generic name. Performs no collateral resets: `playResults`, `lineups`,
+   * `nextPlayType`, and `lineupSubmitted` are untouched (D-17).
+   *
+   * @param {object} state  the candidate incoming game state
+   * @returns {boolean} whether the reducer actually advanced `gameState`
+   */
+  function applyIncomingGameState(state) {
+    const previous = gameState.value
+    const applied = applyGameState(previous, state)
+    gameState.value = applied
+    return applied !== previous
+  }
+
+  /**
+   * Local-apply only — does not POST. The single write site for `lineups[side]`,
+   * shared by the REST `setLineup` / `getLineup` and both WebSocket lineup
+   * events (D-06). `side` is always an `'offense'`/`'defense'` literal chosen by
+   * the caller, never taken from a payload.
+   *
+   * @param {'offense'|'defense'} side  which side's lineup to replace
+   * @param {object} lineup  the whole lineup object (last-writer-wins)
+   */
+  function applyLineup(side, lineup) {
+    lineups.value[side] = lineup
   }
 
   async function setLineup(lineup, isDefense) {
@@ -67,7 +97,7 @@ export const useGameStore = defineStore('game', () => {
     try {
       const response = await axios.post(url, lineup)
       gameMsg.value = response.data
-      lineups.value[func] = lineup
+      applyLineup(func, lineup)
 
       // handle success here
     } catch (err) {
@@ -122,7 +152,7 @@ export const useGameStore = defineStore('game', () => {
 
     try {
       const response = await axios.get(url)
-      lineups.value[team] = response.data
+      applyLineup(team, response.data)
     } catch (err) {
       // handle error here
       if (err.response) {
@@ -422,6 +452,8 @@ export const useGameStore = defineStore('game', () => {
     updateGameStateFromPlayResult,
     // Local-apply actions (do not POST)
     applyPlayResult,
+    applyIncomingGameState,
+    applyLineup,
     // Hover state and functions
     hoveredBox,
     relatedBox,
