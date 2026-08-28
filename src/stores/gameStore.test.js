@@ -3,6 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import axios from 'axios'
 import { useGameStore } from '@/stores/gameStore'
 import { buildLineup } from '../../test/factories/lineup.js'
+import { buildGameState } from '../../test/factories/gameState.js'
 
 vi.mock('axios')
 
@@ -197,6 +198,75 @@ describe('gameStore success paths', () => {
       expect(store.applyPlayResult({ result_type: 'Run' })).toBe(false)
       expect(store.getAllPlayResults).toHaveLength(0)
       expect(store.lineupSubmitted).toBe(true)
+    })
+  })
+
+  describe('applyIncomingGameState (local-apply, no POST)', () => {
+    it('applies a newer state through the reducer and returns true', () => {
+      const store = useGameStore()
+      expect(store.applyIncomingGameState(buildGameState({ play_counter: 1 }))).toBe(true)
+      expect(store.gameState.play_counter).toBe(1)
+    })
+
+    it('rejects a duplicate play_counter — returns false, same state reference', () => {
+      const store = useGameStore()
+      store.applyIncomingGameState(buildGameState({ play_counter: 1 }))
+      const stateBefore = store.gameState
+      expect(store.applyIncomingGameState(buildGameState({ play_counter: 1 }))).toBe(false)
+      expect(store.gameState).toBe(stateBefore)
+    })
+
+    it('rejects a stale (lower) play_counter — returns false, state unchanged', () => {
+      const store = useGameStore()
+      store.applyIncomingGameState(buildGameState({ play_counter: 5 }))
+      const stateBefore = store.gameState
+      expect(store.applyIncomingGameState(buildGameState({ play_counter: 3 }))).toBe(false)
+      expect(store.gameState).toBe(stateBefore)
+      expect(store.gameState.play_counter).toBe(5)
+    })
+
+    it('performs no collateral resets (D-17)', () => {
+      const store = useGameStore()
+      store.applyPlayResult({ result_type: 'Run', new_state: { play_counter: 1 } })
+      store.setLineupSubmitted(true)
+      const resultsBefore = store.getAllPlayResults.length
+      const nextTypeBefore = store.getNextPlayType
+
+      expect(store.applyIncomingGameState(buildGameState({ play_counter: 2 }))).toBe(true)
+
+      expect(store.getAllPlayResults).toHaveLength(resultsBefore)
+      expect(store.lineupSubmitted).toBe(true)
+      expect(store.getNextPlayType).toBe(nextTypeBefore)
+    })
+  })
+
+  describe('applyLineup (local-apply, no POST)', () => {
+    it('stores the offense lineup so getPlayer resolves it', () => {
+      const store = useGameStore()
+      store.applyLineup('offense', buildLineup())
+      expect(store.getPlayer('QB')).toBe('QB-1')
+    })
+
+    it('stores the defense lineup, which getPlayer resolves ahead of offense', () => {
+      const store = useGameStore()
+      store.applyLineup('defense', buildLineup({ QB: 'DEF-QB' }))
+      expect(store.getPlayer('QB')).toBe('DEF-QB')
+    })
+
+    it('keeps the two sides isolated and is idempotent on repeat delivery', () => {
+      const store = useGameStore()
+      // RB is present only on offense; the defense fixture blanks it, so getPlayer
+      // falls through to the offense side for that position.
+      store.applyLineup('offense', buildLineup({ RB: 'OFF-RB' }))
+      store.applyLineup('defense', buildLineup({ QB: 'DEF-QB', RB: '' }))
+      expect(store.getPlayer('QB')).toBe('DEF-QB')
+      expect(store.getPlayer('RB')).toBe('OFF-RB')
+
+      // last-writer-wins on lineups[side]: a repeat is naturally idempotent and
+      // never leaks across sides.
+      store.applyLineup('defense', buildLineup({ QB: 'DEF-QB', RB: '' }))
+      expect(store.getPlayer('QB')).toBe('DEF-QB')
+      expect(store.getPlayer('RB')).toBe('OFF-RB')
     })
   })
 })
