@@ -19,7 +19,7 @@ Requirements for the Realtime milestone. Each maps to a roadmap phase. REQ-IDs c
 
 - [x] **EVT-01**: A pure, Vue-free `src/game/gameEvents.js` parses the tagged `{ event, data }` envelope and rejects malformed/unknown envelopes without throwing (unit-tested, no mocking)
 - [x] **EVT-02**: All 5 event variants are dispatched to the correct store action: `GameStarted` (state), `OffensiveLineupSet` (lineup), `DefensiveLineupSet` (lineup), `NextPlayTypeSet` (play_type), `PlayRun` (full `PlayAndState`)
-- [ ] **EVT-03**: The `PlayRun` event applies the full resulting `GameState` carried in its payload (the opponent's new state), unwrapping the WS superset shape correctly
+- [x] **EVT-03**: The `PlayRun` event applies the full resulting `GameState` carried in its payload (the opponent's new state), unwrapping the WS superset shape correctly
 
 ### State Application (Convergence)
 
@@ -76,7 +76,7 @@ Filled during roadmap creation (2026-07-19).
 | WS-04 | Phase 9 | Pending |
 | EVT-01 | Phase 6 | Complete |
 | EVT-02 | Phase 8 | Complete |
-| EVT-03 | Phase 8 | Pending |
+| EVT-03 | Phase 8 | Complete |
 | STA-01 | Phase 7 | Complete |
 | STA-02 | Phase 7 | Complete |
 | CON-01 | Phase 10 | Pending |

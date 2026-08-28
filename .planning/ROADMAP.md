@@ -91,7 +91,7 @@ Plans:
   3. All `GameState`-bearing variants land through the monotonic reducer (never a raw wholesale replace)
   4. Per-variant tests against a fake store verify correct extraction and dispatch (folds into RTT-01/RTT-02 coverage)
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 **Wave 1**
@@ -104,7 +104,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 08-03-PLAN.md — NextPlayTypeSet slice, 5-variant coverage proof, D-13 flow-regression discharge
+- [x] 08-03-PLAN.md — NextPlayTypeSet slice, 5-variant coverage proof, D-13 flow-regression discharge
 
 ### Phase 9: useGameSocket Composable
 
@@ -157,7 +157,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 6. Pure Foundations | 2/2 | In Progress|  |
 | 7. Monotonic Reducer (KEYSTONE) | 2/2 | In Progress|  |
-| 8. Event Dispatch Glue | 2/3 | In Progress|  |
+| 8. Event Dispatch Glue | 3/3 | In Progress|  |
 | 9. useGameSocket Composable | 0/? | Not started | - |
 | 10. Connection Status Indicator | 0/? | Not started | - |
 | 11. Realtime E2E | 0/? | Not started | - |

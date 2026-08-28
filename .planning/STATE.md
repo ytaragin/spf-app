@@ -5,15 +5,16 @@ milestone_name: Realtime
 current_phase: 08
 current_phase_name: event-dispatch-glue
 status: executing
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-08-28T14:57:26.045Z"
+stopped_at: Completed 08-03-PLAN.md (final plan of phase 08)
+last_updated: "2026-08-28T15:05:40.421Z"
 last_activity: 2026-08-28
 last_activity_desc: Phase 08 execution started
+state_head: 18dff31243d29dd6a17a635c02ff84bf99c2456b
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 33
 ---
 
@@ -29,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-18)
 ## Current Position
 
 Phase: 08 (event-dispatch-glue) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-08-28 — Phase 08 execution started
 
@@ -62,6 +63,7 @@ v1.1 phases continue numbering from v1.0 (ended at Phase 5):
 | Phase 07 P01 | 10m | 1 tasks | 2 files |
 | Phase 07 P02 | 8m | 2 tasks | 1 files |
 | Phase 08 P02 | 15m | 2 tasks | 4 files |
+| Phase 08 P03 | 20m | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -75,6 +77,8 @@ Recent decisions affecting current work:
 - [Research]: Testing reuses existing toolchain — `vi.stubGlobal('WebSocket', FakeWebSocket)` + fake timers for unit/store; Playwright `page.routeWebSocket()` (≥1.48, installed 1.61.1) for E2E.
 - [07-01]: Reducer module named `src/game/gameStateReducer.js` (per plan frontmatter, superseding CONTEXT.md's discretionary example name `monotonicReducer.js`). Single export `applyGameState(current, incoming)`; internal private helper `isNewer`.
 - [07-02]: fetchGame and updateGameStateFromPlayResult both route through applyGameState (D-07/D-08); fetchPlayResult's independent playResults array-push gate (D-09) untouched
+- [Phase 08]: D-13 fallback not taken: the lineupSubmitted reset is already correctly gated by the reducer verdict (D-14 zero-op), proven by 4 REST-path tests
+- [Phase 08]: setPlayType gained an additive optimistic local write via applyNextPlayType — a real behavior change, not a mechanical extraction (D-06)
 
 ### Pending Todos
 
@@ -88,6 +92,7 @@ Open gaps to resolve during phase discussion (from research SUMMARY.md — don't
 - [Phase 9]: Does `GET /state` return `play_counter`? The resync race guard depends on it; if absent, fall back to "cannot order → resync wins once."
 - [Phase 6/8]: Exact per-variant `data` field shapes (GameState vs lineup vs play_type vs PlayAndState) — needed to finalize dispatch mapping + per-variant tests.
 - [Phase 9]: Does the WS handshake share REST auth? (cookie/session vs token-in-query; browsers can't set WS headers.)
+- D-11 carried risk: per-variant WebSocket payload shapes remain UNVERIFIED assumptions; verification deferred to Phase 11 routeWebSocket E2E (RTT-03)
 
 ## Deferred Items
 
@@ -100,8 +105,8 @@ Open gaps to resolve during phase discussion (from research SUMMARY.md — don't
 
 ## Session Continuity
 
-Last session: 2026-08-28T14:57:26.034Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-08-28T15:05:31.577Z
+Stopped at: Completed 08-03-PLAN.md (final plan of phase 08)
 Resume file: None
 
 ## Operator Next Steps
