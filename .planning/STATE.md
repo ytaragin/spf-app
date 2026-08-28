@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Realtime
-current_phase: 07
+current_phase: 08
+current_phase_name: event-dispatch-glue
 status: executing
-stopped_at: Phase 8 context gathered
-last_updated: "2026-07-30T18:27:10.657Z"
-last_activity: 2026-07-23
-last_activity_desc: Phase 07 Plan 02 (gameStore REST refactor) complete
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-08-28T14:57:26.045Z"
+last_activity: 2026-08-28
+last_activity_desc: Phase 08 execution started
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 6
   percent: 33
-current_phase_name: monotonic-reducer-keystone
 ---
 
 # Project State
@@ -24,14 +24,14 @@ current_phase_name: monotonic-reducer-keystone
 See: .planning/PROJECT.md (updated 2026-07-18)
 
 **Core value:** The UI reflects server-side game events — especially the opponent's actions — in real time over a read-only WebSocket, while all client operations continue over REST and the backend-authoritative model is preserved.
-**Current focus:** Phase 07 — monotonic-reducer-keystone
+**Current focus:** Phase 08 — event-dispatch-glue
 
 ## Current Position
 
-Phase: 07 — monotonic-reducer-keystone (complete)
-Plan: 2 of 2 complete (07-01 and 07-02 both done)
-Status: Ready to plan next phase
-Last activity: 2026-07-23 — Phase 07 Plan 02 (gameStore REST refactor) complete
+Phase: 08 (event-dispatch-glue) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-08-28 — Phase 08 execution started
 
 ## Roadmap Summary
 
@@ -61,6 +61,7 @@ v1.1 phases continue numbering from v1.0 (ended at Phase 5):
 | Phase 06 P02 | 5m | 1 tasks | 2 files |
 | Phase 07 P01 | 10m | 1 tasks | 2 files |
 | Phase 07 P02 | 8m | 2 tasks | 1 files |
+| Phase 08 P02 | 15m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -99,9 +100,9 @@ Open gaps to resolve during phase discussion (from research SUMMARY.md — don't
 
 ## Session Continuity
 
-Last session: 2026-07-30T18:27:10.640Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-event-dispatch-glue/08-CONTEXT.md
+Last session: 2026-08-28T14:57:26.034Z
+Stopped at: Completed 08-02-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

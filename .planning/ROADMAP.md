@@ -91,16 +91,16 @@ Plans:
   3. All `GameState`-bearing variants land through the monotonic reducer (never a raw wholesale replace)
   4. Per-variant tests against a fake store verify correct extraction and dispatch (folds into RTT-01/RTT-02 coverage)
 
-**Plans**: 3 plans
+**Plans**: 2/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 08-01-PLAN.md — PlayRun slice: pure `dispatchEvent` module + `applyPlayResult` store action (EVT-03)
+- [x] 08-01-PLAN.md — PlayRun slice: pure `dispatchEvent` module + `applyPlayResult` store action (EVT-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 08-02-PLAN.md — GameStarted + lineup slice: `applyIncomingGameState` / `applyLineup` + 3 dispatch branches
+- [x] 08-02-PLAN.md — GameStarted + lineup slice: `applyIncomingGameState` / `applyLineup` + 3 dispatch branches
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -157,7 +157,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 6. Pure Foundations | 2/2 | In Progress|  |
 | 7. Monotonic Reducer (KEYSTONE) | 2/2 | In Progress|  |
-| 8. Event Dispatch Glue | 0/? | Not started | - |
+| 8. Event Dispatch Glue | 2/3 | In Progress|  |
 | 9. useGameSocket Composable | 0/? | Not started | - |
 | 10. Connection Status Indicator | 0/? | Not started | - |
 | 11. Realtime E2E | 0/? | Not started | - |
