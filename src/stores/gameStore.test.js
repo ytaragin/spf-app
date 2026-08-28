@@ -317,6 +317,66 @@ describe('gameStore success paths', () => {
       expect(store.getNextPlayType).toBe('Run')
     })
   })
+
+  describe('D-13 lineupSubmitted flow (REST path)', () => {
+    const play = (counter) => ({ result_type: 'Run', new_state: { play_counter: counter } })
+
+    // Sequences the three GETs fetchGameData(false) makes, in order:
+    // fetchGame -> fetchPlayTypes -> fetchPlayResult.
+    const mockFetchGameDataChain = (stateCounter, playResult) => {
+      axios.get.mockResolvedValueOnce({ data: { play_counter: stateCounter } })
+      axios.get.mockResolvedValueOnce({ data: { allowed_types: ['Run'], next_type: 'Run' } })
+      axios.get.mockResolvedValueOnce({ data: [playResult] })
+    }
+
+    it('runPlay then a NEW-play fetchGameData leaves lineupSubmitted false (intended collapse)', async () => {
+      axios.post.mockResolvedValueOnce({ data: 'play ran' })
+      const store = useGameStore()
+      store.setLineupSubmitted(true)
+      await store.runPlay()
+      // runPlay already collapsed the flow before any refresh fires.
+      expect(store.lineupSubmitted).toBe(false)
+
+      mockFetchGameDataChain(1, play(1))
+      await store.fetchGameData(false)
+      expect(store.lineupSubmitted).toBe(false)
+    })
+
+    it('a DUPLICATE play_counter is a true zero-op — lineupSubmitted stays true (D-14)', async () => {
+      const store = useGameStore()
+      store.applyPlayResult(play(2))
+      store.setLineupSubmitted(true)
+
+      mockFetchGameDataChain(2, play(2))
+      await store.fetchGameData(false)
+
+      expect(store.lineupSubmitted).toBe(true)
+      expect(store.getAllPlayResults).toHaveLength(1)
+    })
+
+    it('a STALE play_counter is a zero-op — lineupSubmitted stays true', async () => {
+      const store = useGameStore()
+      store.applyPlayResult(play(5))
+      store.setLineupSubmitted(true)
+
+      mockFetchGameDataChain(5, play(3))
+      await store.fetchGameData(false)
+
+      expect(store.lineupSubmitted).toBe(true)
+      expect(store.gameState.play_counter).toBe(5)
+    })
+
+    it('a play with no new_state is a zero-op — lineupSubmitted stays true', async () => {
+      const store = useGameStore()
+      store.setLineupSubmitted(true)
+
+      mockFetchGameDataChain(1, { result_type: 'Run' })
+      await store.fetchGameData(false)
+
+      expect(store.lineupSubmitted).toBe(true)
+      expect(store.getAllPlayResults).toHaveLength(0)
+    })
+  })
 })
 
 describe('gameStore error branches', () => {
