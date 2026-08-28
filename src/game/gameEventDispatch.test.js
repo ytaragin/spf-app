@@ -117,19 +117,6 @@ describe('dispatchEvent — PlayRun', () => {
       })
     }
   })
-
-  describe('variants deferred to plans 08-02 / 08-03', () => {
-    const deferred = ['NextPlayTypeSet']
-
-    for (const event of deferred) {
-      it(`ignores ${event} for now and returns false`, () => {
-        vi.spyOn(console, 'error').mockImplementation(() => {})
-        const store = makeFakeStore()
-        expect(dispatchEvent(store, { event, data: {} })).toBe(false)
-        expect(store.calls).toHaveLength(0)
-      })
-    }
-  })
 })
 
 describe('dispatchEvent — GameStarted', () => {
@@ -229,4 +216,118 @@ describe('dispatchEvent — malformed data for the state and lineup variants', (
       expect(store.calls).toHaveLength(0)
     })
   }
+})
+
+describe('dispatchEvent — NextPlayTypeSet', () => {
+  it('routes a bare play-type string to applyNextPlayType and returns true', () => {
+    const store = makeFakeStore()
+    expect(dispatchEvent(store, { event: 'NextPlayTypeSet', data: 'Run' })).toBe(true)
+    expect(store.calls).toHaveLength(1)
+    expect(store.calls[0]).toEqual(['applyNextPlayType', 'Run'])
+  })
+
+  it('forwards the { next_type } object shape unchanged for the store to normalize (D-10)', () => {
+    const store = makeFakeStore()
+    const data = { next_type: 'Pass' }
+    expect(dispatchEvent(store, { event: 'NextPlayTypeSet', data })).toBe(true)
+    expect(store.calls).toHaveLength(1)
+    expect(store.calls[0][0]).toBe('applyNextPlayType')
+    expect(store.calls[0][1]).toBe(data)
+  })
+
+  it('is idempotent in effect — two identical deliveries carry the same play type', () => {
+    const store = makeFakeStore()
+    dispatchEvent(store, { event: 'NextPlayTypeSet', data: 'Run' })
+    dispatchEvent(store, { event: 'NextPlayTypeSet', data: 'Run' })
+    expect(store.calls).toHaveLength(2)
+    expect(store.calls[0][1]).toBe(store.calls[1][1])
+  })
+
+  describe('invalid NextPlayTypeSet payloads', () => {
+    const cases = [
+      ['null', null],
+      ['undefined', undefined],
+      ['a number', 42],
+      ['an empty string', ''],
+      ['an object with no next_type', { nope: 'Run' }],
+      ['an object with a non-string next_type', { next_type: 42 }],
+      ['an object with an empty next_type', { next_type: '' }]
+    ]
+
+    for (const [label, data] of cases) {
+      it(`returns false, logs, and touches no store action for ${label}`, () => {
+        const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+        const store = makeFakeStore()
+        expect(() => dispatchEvent(store, { event: 'NextPlayTypeSet', data })).not.toThrow()
+        expect(dispatchEvent(store, { event: 'NextPlayTypeSet', data })).toBe(false)
+        expect(spy).toHaveBeenCalled()
+        expect(store.calls).toHaveLength(0)
+      })
+    }
+
+    it('logs the event tag but never a payload value', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const store = makeFakeStore()
+      dispatchEvent(store, { event: 'NextPlayTypeSet', data: { secret: 'top-secret-value' } })
+      const message = spy.mock.calls[0].join(' ')
+      expect(message).toContain('NextPlayTypeSet')
+      expect(message).not.toContain('top-secret-value')
+      expect(store.calls).toHaveLength(0)
+    })
+  })
+})
+
+describe('dispatchEvent — variant coverage and defensive branches', () => {
+  // Locally declared, mirroring KNOWN_VARIANTS in gameEvents.js. The two lists
+  // must stay in lockstep — this test is what makes drift visible.
+  const variants = [
+    ['GameStarted', buildGameState({ play_counter: 1 })],
+    ['OffensiveLineupSet', buildLineup()],
+    ['DefensiveLineupSet', buildLineup()],
+    ['NextPlayTypeSet', 'Run'],
+    ['PlayRun', playRun(1)]
+  ]
+
+  it('covers exactly the 5 known variants', () => {
+    expect(variants).toHaveLength(5)
+  })
+
+  for (const [event, data] of variants) {
+    it(`routes ${event} to a store action — no fall-through to the unknown-tag branch`, () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const store = makeFakeStore()
+      expect(dispatchEvent(store, { event, data })).toBe(true)
+      expect(store.calls.length).toBeGreaterThanOrEqual(1)
+      expect(spy).not.toHaveBeenCalled()
+    })
+  }
+
+  it('rejects an unknown tag, logging the tag with zero store calls', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const store = makeFakeStore()
+    expect(dispatchEvent(store, { event: 'Nope', data: {} })).toBe(false)
+    expect(spy.mock.calls[0].join(' ')).toContain('Nope')
+    expect(store.calls).toHaveLength(0)
+  })
+
+  describe('malformed envelopes never throw', () => {
+    const cases = [
+      ['null', null],
+      ['undefined', undefined],
+      ['a number', 42],
+      ['a string', 'string'],
+      ['an empty object', {}],
+      ['a non-string event tag', { event: 123, data: {} }]
+    ]
+
+    for (const [label, input] of cases) {
+      it(`returns false for ${label}`, () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const store = makeFakeStore()
+        expect(() => dispatchEvent(store, input)).not.toThrow()
+        expect(dispatchEvent(store, input)).toBe(false)
+        expect(store.calls).toHaveLength(0)
+      })
+    }
+  })
 })
