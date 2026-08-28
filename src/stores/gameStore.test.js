@@ -89,6 +89,13 @@ describe('gameStore success paths', () => {
       await store.setPlayType('Run')
       expect(store.gameMsg).toBe('type set')
     })
+
+    it('optimistically applies the play type locally through applyNextPlayType', async () => {
+      axios.post.mockResolvedValueOnce({ data: 'type set' })
+      const store = useGameStore()
+      await store.setPlayType('Pass')
+      expect(store.getNextPlayType).toBe('Pass')
+    })
   })
 
   describe('runPlay', () => {
@@ -269,6 +276,47 @@ describe('gameStore success paths', () => {
       expect(store.getPlayer('RB')).toBe('OFF-RB')
     })
   })
+
+  describe('applyNextPlayType (local-apply, no POST)', () => {
+    it('stores a bare non-empty string', () => {
+      const store = useGameStore()
+      store.applyNextPlayType('Run')
+      expect(store.getNextPlayType).toBe('Run')
+    })
+
+    it('unwraps the { next_type } response shape from /game/nexttype (D-10)', () => {
+      const store = useGameStore()
+      store.applyNextPlayType({ next_type: 'Pass' })
+      expect(store.getNextPlayType).toBe('Pass')
+    })
+
+    it('normalizes null and undefined to null', () => {
+      const store = useGameStore()
+      store.applyNextPlayType('Run')
+      store.applyNextPlayType(null)
+      expect(store.getNextPlayType).toBe(null)
+      store.applyNextPlayType('Run')
+      store.applyNextPlayType(undefined)
+      expect(store.getNextPlayType).toBe(null)
+    })
+
+    it('normalizes a non-string, non-{next_type} input to null rather than storing garbage', () => {
+      const store = useGameStore()
+      store.applyNextPlayType(42)
+      expect(store.getNextPlayType).toBe(null)
+      store.applyNextPlayType('')
+      expect(store.getNextPlayType).toBe(null)
+      store.applyNextPlayType({ nope: 'Run' })
+      expect(store.getNextPlayType).toBe(null)
+    })
+
+    it('is idempotent on repeat delivery (last-writer-wins)', () => {
+      const store = useGameStore()
+      store.applyNextPlayType('Run')
+      store.applyNextPlayType('Run')
+      expect(store.getNextPlayType).toBe('Run')
+    })
+  })
 })
 
 describe('gameStore error branches', () => {
@@ -406,6 +454,7 @@ describe('gameStore error branches', () => {
       expect(store.gameMsg).toBe('types bad')
       expect(store.error).toContain('types bad')
       expect(store.getPlayTypes).toEqual([])
+      expect(store.getNextPlayType).toBe(null)
       expect(spy).toHaveBeenCalled()
     })
 
