@@ -31,3 +31,7 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# AI agent tooling config (not project code)
+.agents/
+.opencode/
